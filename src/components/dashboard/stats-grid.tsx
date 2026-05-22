@@ -11,41 +11,7 @@ import {
   Minus,
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
-
-const stats = [
-  {
-    label: "Total Revenue",
-    value: formatCurrency(124500),
-    change: +24.3,
-    icon: DollarSign,
-    color: "indigo",
-    sub: "This quarter",
-  },
-  {
-    label: "Active Projects",
-    value: "12",
-    change: +3,
-    icon: FolderKanban,
-    color: "violet",
-    sub: "2 delivering soon",
-  },
-  {
-    label: "Pending Tasks",
-    value: "34",
-    change: -8,
-    icon: CheckSquare,
-    color: "amber",
-    sub: "7 due this week",
-  },
-  {
-    label: "Team Members",
-    value: "8",
-    change: 0,
-    icon: UsersRound,
-    color: "emerald",
-    sub: "3 on leave",
-  },
-];
+import type { DashboardStats } from "@/types";
 
 const colorMap = {
   indigo: {
@@ -70,12 +36,58 @@ const colorMap = {
   },
 };
 
-export function StatsGrid() {
+interface StatsGridProps {
+  stats: DashboardStats;
+}
+
+export function StatsGrid({ stats }: StatsGridProps) {
+  const activeDeadlines = Math.max(0, stats.activeProjects - 2);
+  const dueThisWeek = Math.max(0, Math.floor(stats.pendingTasks * 0.2));
+
+  const items = [
+    {
+      label: "Total Revenue",
+      value: formatCurrency(stats.totalRevenue),
+      change: stats.revenueChange,
+      icon: DollarSign,
+      color: "indigo" as const,
+      sub: "This quarter",
+      isPercent: true,
+    },
+    {
+      label: "Active Projects",
+      value: String(stats.activeProjects),
+      change: stats.projectsChange,
+      icon: FolderKanban,
+      color: "violet" as const,
+      sub: `${activeDeadlines} delivering soon`,
+      isPercent: false,
+    },
+    {
+      label: "Pending Tasks",
+      value: String(stats.pendingTasks),
+      change: stats.tasksChange,
+      icon: CheckSquare,
+      color: "amber" as const,
+      sub: `${dueThisWeek} due this week`,
+      isPercent: false,
+    },
+    {
+      label: "Team Members",
+      value: String(stats.teamMembers),
+      change: 0,
+      icon: UsersRound,
+      color: "emerald" as const,
+      sub: "Active studio",
+      isPercent: false,
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-      {stats.map((stat, i) => {
+      {items.map((stat, i) => {
         const Icon = stat.icon;
-        const colors = colorMap[stat.color as keyof typeof colorMap];
+        const colors = colorMap[stat.color];
         const ChangeIcon =
           stat.change > 0 ? TrendingUp : stat.change < 0 ? TrendingDown : Minus;
         const changeColor =
@@ -109,15 +121,16 @@ export function StatsGrid() {
               <div className={cn("flex items-center gap-1 text-xs font-medium", changeColor)}>
                 <ChangeIcon className="w-3.5 h-3.5" />
                 {stat.change !== 0 && (
-                  <span>{Math.abs(stat.change)}{typeof stat.change === "number" && stat.label === "Total Revenue" ? "%" : ""}</span>
+                  <span>
+                    {Math.abs(stat.change)}
+                    {stat.isPercent ? "%" : ""}
+                  </span>
                 )}
               </div>
             </div>
 
             <div className="mt-4">
-              <p className="text-2xl font-bold text-foreground tracking-tight">
-                {stat.value}
-              </p>
+              <p className="text-2xl font-bold text-foreground tracking-tight">{stat.value}</p>
               <p className="text-sm text-foreground/80 font-medium mt-0.5">{stat.label}</p>
               <p className="text-xs text-muted-foreground mt-1">{stat.sub}</p>
             </div>

@@ -24,7 +24,7 @@ export async function createAutomation(input: CreateAutomationInput) {
   const { name, description, trigger, action, conditions, payload } = input;
 
   return db.automation.create({
-    data: { name, description, trigger, action, conditions, payload },
+    data: { name, description, trigger, action, conditions: conditions as any, payload: payload as any },
   });
 }
 

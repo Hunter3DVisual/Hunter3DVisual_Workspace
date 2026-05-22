@@ -11,21 +11,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-
-const data = [
-  { month: "Jan", revenue: 18000, invoiced: 22000 },
-  { month: "Feb", revenue: 14500, invoiced: 16000 },
-  { month: "Mar", revenue: 23000, invoiced: 25500 },
-  { month: "Apr", revenue: 19000, invoiced: 21000 },
-  { month: "May", revenue: 28500, invoiced: 30000 },
-  { month: "Jun", revenue: 24000, invoiced: 27000 },
-  { month: "Jul", revenue: 31000, invoiced: 34000 },
-  { month: "Aug", revenue: 27500, invoiced: 29000 },
-  { month: "Sep", revenue: 35000, invoiced: 38000 },
-  { month: "Oct", revenue: 29000, invoiced: 32000 },
-  { month: "Nov", revenue: 38000, invoiced: 41000 },
-  { month: "Dec", revenue: 42000, invoiced: 45000 },
-];
+import type { RevenueChartData } from "@/types";
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -43,7 +29,11 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
-export function RevenueChart() {
+interface RevenueChartProps {
+  data: RevenueChartData[];
+}
+
+export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <Card>
       <CardHeader className="pb-4">
