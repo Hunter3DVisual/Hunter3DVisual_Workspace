@@ -10,7 +10,7 @@ export default function SignUpPage() {
       <div className="relative z-10 flex flex-col items-center gap-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gradient-indigo glow-text-indigo">
-            Hunter3DVisual
+            Hunter3Dvisual
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Studio Workspace</p>
         </div>

@@ -7,8 +7,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Hunter3DVisual Workspace",
-    template: "%s | Hunter3DVisual",
+    default: "Hunter3Dvisual Workspace",
+    template: "%s | Hunter3Dvisual",
   },
   description: "AI-powered operating system for Archviz studio — projects, pipeline, finance & more.",
   icons: {
@@ -31,7 +31,7 @@ export default function RootLayout({
         baseTheme: dark,
         variables: {
           colorBackground: "#0c0e14",
-          colorPrimary: "#6366f1",
+          colorPrimary: "#E8521A",
           colorText: "#e2e8f0",
           colorInputBackground: "#111420",
           colorInputText: "#e2e8f0",

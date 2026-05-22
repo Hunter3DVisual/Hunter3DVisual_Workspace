@@ -12,7 +12,7 @@ export default function SignInPage() {
         {/* Logo */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gradient-indigo glow-text-indigo">
-            Hunter3DVisual
+            Hunter3Dvisual
           </h1>
           <p className="text-sm text-muted-foreground mt-1">Studio Workspace</p>
         </div>

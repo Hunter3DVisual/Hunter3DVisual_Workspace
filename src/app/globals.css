@@ -10,7 +10,7 @@
     --card-foreground: 213 31% 91%;
     --popover: 222 47% 7%;
     --popover-foreground: 213 31% 91%;
-    --primary: 239 84% 67%;
+    --primary: 18 84% 51%;
     --primary-foreground: 0 0% 100%;
     --secondary: 222 47% 11%;
     --secondary-foreground: 213 31% 91%;
@@ -22,7 +22,7 @@
     --destructive-foreground: 213 31% 91%;
     --border: 222 47% 14%;
     --input: 222 47% 14%;
-    --ring: 239 84% 67%;
+    --ring: 18 84% 51%;
     --radius: 0.5rem;
   }
 }
@@ -38,7 +38,7 @@
 
   body {
     @apply bg-hunter-bg text-foreground font-sans antialiased;
-    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='none'/%3E%3Cpath d='M0 .5h40M.5 0v40' stroke='%236366f1' stroke-opacity='.03' stroke-width='1'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h40v40H0z' fill='none'/%3E%3Cpath d='M0 .5h40M.5 0v40' stroke='%23e8521a' stroke-opacity='.03' stroke-width='1'/%3E%3C/svg%3E");
   }
 
   /* Scrollbar */
@@ -58,7 +58,8 @@
 
   /* Selection */
   ::selection {
-    @apply bg-indigo-500/30 text-indigo-100;
+    background: rgba(232, 82, 26, 0.3);
+    color: #fde3d3;
   }
 }
 
@@ -74,7 +75,7 @@
 
   /* Glow effects */
   .glow-text-indigo {
-    text-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+    text-shadow: 0 0 20px rgba(232, 82, 26, 0.6);
   }
 
   .glow-text-gold {
@@ -115,7 +116,10 @@
 
 @layer utilities {
   .text-gradient-indigo {
-    @apply bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent;
+    background: linear-gradient(to right, #e8521a, #f07840);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 
   .text-gradient-gold {
@@ -123,6 +127,6 @@
   }
 
   .border-gradient {
-    border-image: linear-gradient(to right, #6366f1, #8b5cf6) 1;
+    border-image: linear-gradient(to right, #e8521a, #f07840) 1;
   }
 }

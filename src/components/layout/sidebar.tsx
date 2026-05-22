@@ -20,7 +20,6 @@ import {
   Zap,
   Settings,
   ChevronRight,
-  Box,
 } from "lucide-react";
 
 const navGroups = [
@@ -77,8 +76,14 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
           "flex items-center h-16 px-4 border-b border-hunter-border shrink-0",
           collapsed ? "justify-center" : "gap-3"
         )}>
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0 shadow-glow-sm">
-            <Box className="w-4 h-4 text-white" />
+          <div className="shrink-0 flex items-center justify-center w-8 h-8">
+            <img
+              src="/logo.png"
+              alt="Hunter3Dvisual"
+              height={32}
+              width={32}
+              className="h-8 w-auto object-contain"
+            />
           </div>
           {!collapsed && (
             <motion.div
@@ -86,8 +91,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -8 }}
             >
-              <p className="text-sm font-semibold text-foreground leading-none">Hunter3D</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Visual Workspace</p>
+              <p className="text-sm font-semibold text-foreground leading-none">Hunter3Dvisual</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Studio Workspace</p>
             </motion.div>
           )}
         </div>
@@ -162,9 +167,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
         </ScrollArea>
 
         {/* Footer */}
-        <div className={cn(
-          "shrink-0 p-2 border-t border-hunter-border",
-        )}>
+        <div className={cn("shrink-0 p-2 border-t border-hunter-border")}>
           {collapsed ? (
             <Tooltip>
               <TooltipTrigger asChild>

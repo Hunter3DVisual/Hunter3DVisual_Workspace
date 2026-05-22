@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 
 const anthropic = createAnthropic();
 
-const SYSTEM_PROMPT = `You are an AI assistant for an Archviz studio called Hunter3D Visual. You help with:
+const SYSTEM_PROMPT = `You are an AI assistant for an Archviz studio called Hunter3Dvisual. You help with:
 - Project management, timelines, and workflow optimization
 - Client communications and proposals
 - Technical rendering guidance (lighting, materials, post-processing)
