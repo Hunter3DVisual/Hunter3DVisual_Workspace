@@ -1,0 +1,406 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ProjectStatus {
+  BRIEF
+  CONCEPT
+  MODELING
+  LIGHTING
+  RENDERING
+  POST
+  REVIEW
+  DELIVERED
+  ARCHIVED
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  VIEWED
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  VIEWED
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  VIP
+  INACTIVE
+  ARCHIVED
+}
+
+enum AssetCategory {
+  MATERIAL
+  TEXTURE
+  MODEL
+  HDRI
+  PRESET
+  RENDER
+  REFERENCE
+  OTHER
+}
+
+enum AutomationTrigger {
+  PROJECT_CREATED
+  PROJECT_STATUS_CHANGED
+  TASK_COMPLETED
+  INVOICE_PAID
+  INVOICE_OVERDUE
+  QUOTE_ACCEPTED
+  CLIENT_CREATED
+  DEADLINE_APPROACHING
+}
+
+enum AutomationAction {
+  SEND_EMAIL
+  CREATE_TASK
+  UPDATE_STATUS
+  SEND_NOTIFICATION
+  WEBHOOK
+}
+
+// ─── Core Models ─────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String
+  avatar    String?
+  role      String   @default("member")
+  timezone  String   @default("Asia/Ho_Chi_Minh")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignedTasks   Task[]         @relation("TaskAssignee")
+  createdProjects Project[]      @relation("ProjectOwner")
+  comments        Comment[]
+  notifications   Notification[]
+  teamMembers     TeamMember[]
+
+  @@map("users")
+}
+
+model Client {
+  id        String       @id @default(cuid())
+  name      String
+  company   String?
+  email     String
+  phone     String?
+  avatar    String?
+  status    ClientStatus @default(LEAD)
+  country   String?
+  city      String?
+  notes     String?
+  tags      String[]     @default([])
+  metadata  Json?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  projects  Project[]
+  invoices  Invoice[]
+  quotes    Quote[]
+  contacts  Contact[]
+
+  @@map("clients")
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  clientId  String
+  name      String
+  title     String?
+  email     String?
+  phone     String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("contacts")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  code        String        @unique
+  name        String
+  description String?
+  status      ProjectStatus @default(BRIEF)
+  clientId    String?
+  ownerId     String
+  thumbnail   String?
+  tags        String[]      @default([])
+  startDate   DateTime?
+  deadline    DateTime?
+  deliveredAt DateTime?
+  budget      Float?
+  currency    String        @default("USD")
+  progress    Int           @default(0)
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  client      Client?       @relation(fields: [clientId], references: [id])
+  owner       User          @relation("ProjectOwner", fields: [ownerId], references: [id])
+  tasks       Task[]
+  assets      Asset[]
+  renders     Render[]
+  invoices    Invoice[]
+  quotes      Quote[]
+  pipeline    PipelineStage[]
+  comments    Comment[]
+  teamMembers TeamMember[]
+
+  @@map("projects")
+}
+
+model PipelineStage {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  order       Int
+  status      String   @default("pending")
+  progress    Int      @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+  notes       String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("pipeline_stages")
+}
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  projectId   String?
+  assigneeId  String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  tags        String[]     @default([])
+  order       Int          @default(0)
+  estimateHrs Float?
+  loggedHrs   Float?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project  Project?  @relation(fields: [projectId], references: [id])
+  assignee User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  comments Comment[]
+
+  @@map("tasks")
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  number      String        @unique
+  clientId    String
+  projectId   String?
+  status      InvoiceStatus @default(DRAFT)
+  issueDate   DateTime      @default(now())
+  dueDate     DateTime
+  paidAt      DateTime?
+  subtotal    Float
+  tax         Float         @default(0)
+  discount    Float         @default(0)
+  total       Float
+  currency    String        @default("USD")
+  notes       String?
+  terms       String?
+  items       Json
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  client  Client   @relation(fields: [clientId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@map("invoices")
+}
+
+model Quote {
+  id          String      @id @default(cuid())
+  number      String      @unique
+  clientId    String
+  projectId   String?
+  status      QuoteStatus @default(DRAFT)
+  issueDate   DateTime    @default(now())
+  expiryDate  DateTime
+  acceptedAt  DateTime?
+  subtotal    Float
+  tax         Float       @default(0)
+  discount    Float       @default(0)
+  total       Float
+  currency    String      @default("USD")
+  notes       String?
+  terms       String?
+  items       Json
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  client  Client   @relation(fields: [clientId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@map("quotes")
+}
+
+model Asset {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  category    AssetCategory @default(OTHER)
+  projectId   String?
+  fileUrl     String
+  previewUrl  String?
+  fileSize    Int?
+  fileType    String?
+  tags        String[]      @default([])
+  isFavorite  Boolean       @default(false)
+  isPublic    Boolean       @default(false)
+  metadata    Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@map("assets")
+}
+
+model Render {
+  id          String   @id @default(cuid())
+  projectId   String
+  name        String
+  imageUrl    String
+  thumbnailUrl String?
+  width       Int?
+  height      Int?
+  renderTime  Int?
+  software    String?
+  version     Int      @default(1)
+  isFinal     Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("renders")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      String   @default("contributor")
+  joinedAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("team_members")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  authorId  String
+  projectId String?
+  taskId    String?
+  parentId  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author  User     @relation(fields: [authorId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  task    Task?    @relation(fields: [taskId], references: [id])
+  parent  Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentReplies")
+
+  @@map("comments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String?
+  type      String
+  read      Boolean  @default(false)
+  href      String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model Automation {
+  id          String            @id @default(cuid())
+  name        String
+  description String?
+  trigger     AutomationTrigger
+  action      AutomationAction
+  conditions  Json?
+  payload     Json?
+  isActive    Boolean           @default(true)
+  runCount    Int               @default(0)
+  lastRunAt   DateTime?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  runs AutomationRun[]
+
+  @@map("automations")
+}
+
+model AutomationRun {
+  id           String   @id @default(cuid())
+  automationId String
+  status       String
+  output       Json?
+  error        String?
+  triggeredAt  DateTime @default(now())
+
+  automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@map("automation_runs")
+}
