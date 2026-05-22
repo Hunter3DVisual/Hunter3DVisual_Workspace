@@ -95,6 +95,19 @@ enum AutomationAction {
   WEBHOOK
 }
 
+enum DocumentType {
+  CONTRACT
+  LIQUIDATION
+  INVOICE
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  SIGNED
+  PAID
+}
+
 // ─── Core Models ─────────────────────────────────────────────────────────────
 
 model User {
@@ -119,25 +132,38 @@ model User {
 }
 
 model Client {
-  id        String       @id @default(cuid())
-  name      String
-  company   String?
-  email     String
-  phone     String?
-  avatar    String?
-  status    ClientStatus @default(LEAD)
-  country   String?
-  city      String?
-  notes     String?
-  tags      String[]     @default([])
-  metadata  Json?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  clientId         String?      @unique
+  name             String
+  company          String?
+  email            String
+  phone            String?
+  whatsapp         String?
+  website          String?
+  avatar           String?
+  status           ClientStatus @default(LEAD)
+  country          String?
+  city             String?
+  address          String?
+  firstContact     DateTime?
+  representative   String?
+  position         String?
+  taxCode          String?
+  lastProject      String?
+  totalProjects    Int          @default(0)
+  totalContractUSD Float        @default(0)
+  outstandingUSD   Float        @default(0)
+  notes            String?
+  tags             String[]     @default([])
+  metadata         Json?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   projects  Project[]
   invoices  Invoice[]
   quotes    Quote[]
   contacts  Contact[]
+  documents Document[]
 
   @@map("clients")
 }
@@ -187,6 +213,7 @@ model Project {
   pipeline    PipelineStage[]
   comments    Comment[]
   teamMembers TeamMember[]
+  documents   Document[]
 
   @@map("projects")
 }
@@ -429,4 +456,29 @@ model ChatMessage {
   session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("chat_messages")
+}
+
+model Document {
+  id             String         @id @default(cuid())
+  type           DocumentType
+  contractNumber String?
+  signDate       DateTime?
+  startDate      DateTime?
+  endDate        DateTime?
+  clientId       String?
+  projectId      String?
+  clientInfo     Json?
+  scopeItems     Json?
+  lineItems      Json?
+  totalAmount    Float          @default(0)
+  currency       String         @default("USD")
+  status         DocumentStatus @default(DRAFT)
+  notes          String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  client  Client?  @relation(fields: [clientId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@map("documents")
 }
