@@ -113,6 +113,7 @@ model User {
   comments        Comment[]
   notifications   Notification[]
   teamMembers     TeamMember[]
+  chatSessions    ChatSession[]
 
   @@map("users")
 }
@@ -403,4 +404,29 @@ model AutomationRun {
   automation Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
 
   @@map("automation_runs")
+}
+
+model ChatSession {
+  id        String        @id @default(cuid())
+  userId    String
+  title     String        @default("New Chat")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  sessionId String
+  role      String
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  session ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
 }
