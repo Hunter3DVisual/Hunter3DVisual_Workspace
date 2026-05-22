@@ -8,17 +8,17 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const routeLabels: Record<string, string> = {
-  "/": "Dashboard",
-  "/projects": "Projects",
-  "/clients": "Clients CRM",
-  "/pipeline": "Production Pipeline",
-  "/tasks": "Tasks",
-  "/assets": "Asset Library",
-  "/finance": "Finance",
-  "/quotes": "Quotes & Invoices",
-  "/team": "Team Workspace",
-  "/ai": "AI Assistant",
-  "/automation": "Automation",
+  "/dashboard": "Dashboard",
+  "/dashboard/projects": "Projects",
+  "/dashboard/clients": "Clients CRM",
+  "/dashboard/pipeline": "Production Pipeline",
+  "/dashboard/tasks": "Tasks",
+  "/dashboard/assets": "Asset Library",
+  "/dashboard/finance": "Finance",
+  "/dashboard/invoices": "Quotes & Invoices",
+  "/dashboard/team": "Team Workspace",
+  "/dashboard/ai": "AI Assistant",
+  "/dashboard/automation": "Automation",
   "/settings": "Settings",
 };
 
@@ -30,7 +30,7 @@ interface HeaderProps {
 export function Header({ collapsed, onToggleSidebar }: HeaderProps) {
   const pathname = usePathname();
   const label = Object.entries(routeLabels).find(([route]) =>
-    route === "/" ? pathname === "/" : pathname.startsWith(route)
+    route === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(route)
   )?.[1] ?? "Workspace";
 
   return (

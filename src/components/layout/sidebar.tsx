@@ -27,32 +27,32 @@ const navGroups = [
   {
     label: "Core",
     items: [
-      { href: "/", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/projects", label: "Projects", icon: FolderKanban },
-      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+      { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+      { href: "/dashboard/clients", label: "Clients", icon: Users },
     ],
   },
   {
     label: "Production",
     items: [
-      { href: "/pipeline", label: "Pipeline", icon: GitBranch },
-      { href: "/tasks", label: "Tasks", icon: CheckSquare },
-      { href: "/assets", label: "Asset Library", icon: Layers },
+      { href: "/dashboard/pipeline", label: "Pipeline", icon: GitBranch },
+      { href: "/dashboard/tasks", label: "Tasks", icon: CheckSquare },
+      { href: "/dashboard/assets", label: "Asset Library", icon: Layers },
     ],
   },
   {
     label: "Finance",
     items: [
-      { href: "/finance", label: "Finance", icon: DollarSign },
-      { href: "/invoices", label: "Quotes & Invoices", icon: FileText },
+      { href: "/dashboard/finance", label: "Finance", icon: DollarSign },
+      { href: "/dashboard/invoices", label: "Quotes & Invoices", icon: FileText },
     ],
   },
   {
     label: "Studio",
     items: [
-      { href: "/team", label: "Team", icon: UsersRound },
-      { href: "/ai", label: "AI Assistant", icon: BrainCircuit },
-      { href: "/automation", label: "Automation", icon: Zap },
+      { href: "/dashboard/team", label: "Team", icon: UsersRound },
+      { href: "/dashboard/ai", label: "AI Assistant", icon: BrainCircuit },
+      { href: "/dashboard/automation", label: "Automation", icon: Zap },
     ],
   },
 ];
@@ -105,8 +105,8 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
                 <ul className="space-y-0.5">
                   {group.items.map((item) => {
                     const isActive =
-                      item.href === "/"
-                        ? pathname === "/"
+                      item.href === "/dashboard"
+                        ? pathname === "/dashboard"
                         : pathname.startsWith(item.href);
                     const Icon = item.icon;
 
@@ -169,7 +169,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
-                  href="/settings"
+                  href="/dashboard/settings"
                   className="flex items-center justify-center w-full p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-hunter-elevated transition-colors"
                 >
                   <Settings className="w-5 h-5" />
@@ -179,7 +179,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
             </Tooltip>
           ) : (
             <Link
-              href="/settings"
+              href="/dashboard/settings"
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-hunter-elevated transition-colors"
             >
               <Settings className="w-4 h-4" />
