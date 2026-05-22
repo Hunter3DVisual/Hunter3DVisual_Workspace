@@ -1,0 +1,107 @@
+"use server";
+
+import { db } from "@/lib/db";
+import { auth } from "@clerk/nextjs/server";
+import type { InvoiceFilters, CreateInvoiceInput, Transaction } from "@/types/finance";
+
+export async function getFinanceStats() {
+  const [paidAgg, pendingInvoices] = await Promise.all([
+    db.invoice.aggregate({
+      where: { status: "PAID" },
+      _sum: { total: true },
+    }),
+    db.invoice.findMany({
+      where: { status: { in: ["SENT", "VIEWED", "PARTIAL", "OVERDUE"] } },
+      select: { total: true },
+    }),
+  ]);
+
+  const revenue = paidAgg._sum.total ?? 0;
+  const pendingAmount = pendingInvoices.reduce((sum, inv) => sum + inv.total, 0);
+
+  return {
+    revenue,
+    expenses: 0,
+    profit: revenue,
+    pendingAmount,
+    pendingCount: pendingInvoices.length,
+  };
+}
+
+export async function getRecentTransactions(): Promise<Transaction[]> {
+  const invoices = await db.invoice.findMany({
+    where: { status: { in: ["PAID", "PARTIAL"] } },
+    include: { client: { select: { name: true } } },
+    orderBy: { paidAt: "desc" },
+    take: 10,
+  });
+
+  return invoices.map((inv) => ({
+    id: inv.id,
+    type: "income" as const,
+    description: `Invoice ${inv.number}`,
+    amount: inv.total,
+    date: inv.paidAt ?? inv.updatedAt,
+    invoiceNumber: inv.number,
+    clientName: inv.client.name,
+  }));
+}
+
+export async function getInvoices(filters: InvoiceFilters = {}) {
+  const { status, search, clientId } = filters;
+
+  return db.invoice.findMany({
+    where: {
+      ...(status && { status }),
+      ...(clientId && { clientId }),
+      ...(search && {
+        OR: [
+          { number: { contains: search, mode: "insensitive" } },
+          { client: { name: { contains: search, mode: "insensitive" } } },
+        ],
+      }),
+    },
+    include: {
+      client: { select: { id: true, name: true, company: true } },
+      project: { select: { id: true, name: true, code: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function createInvoice(input: CreateInvoiceInput) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const {
+    number,
+    clientId,
+    projectId,
+    dueDate,
+    subtotal,
+    tax = 0,
+    discount = 0,
+    total,
+    currency = "USD",
+    notes,
+    terms,
+    items,
+  } = input;
+
+  return db.invoice.create({
+    data: { number, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items },
+  });
+}
+
+export async function updateInvoiceStatus(id: string, status: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  return db.invoice.update({
+    where: { id },
+    data: {
+      status: status as any,
+      ...(status === "PAID" ? { paidAt: new Date() } : {}),
+    },
+  });
+}

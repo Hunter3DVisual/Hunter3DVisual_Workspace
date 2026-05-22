@@ -44,7 +44,7 @@ const navGroups = [
     label: "Finance",
     items: [
       { href: "/finance", label: "Finance", icon: DollarSign },
-      { href: "/quotes", label: "Quotes & Invoices", icon: FileText },
+      { href: "/invoices", label: "Quotes & Invoices", icon: FileText },
     ],
   },
   {
