@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Plus, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ClientFormModal } from "@/components/clients/ClientFormModal";
 import { cn } from "@/lib/utils";
 import type { ClientStatus } from "@/types/clients";
 
@@ -27,6 +27,7 @@ export function ClientsHeader({ total, search, status }: ClientsHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const updateParams = (updates: Partial<{ search: string; status: string }>) => {
     const params = new URLSearchParams();
@@ -49,11 +50,10 @@ export function ClientsHeader({ total, search, status }: ClientsHeaderProps) {
           <h1 className="text-2xl font-semibold text-foreground">Clients</h1>
           <p className="text-sm text-muted-foreground mt-0.5">{total} clients</p>
         </div>
-        <Button asChild>
-          <Link href="/clients/new">
-            <Plus className="w-4 h-4" /> New Client
-          </Link>
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="w-4 h-4" /> New Client
         </Button>
+        <ClientFormModal open={createOpen} onOpenChange={setCreateOpen} />
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

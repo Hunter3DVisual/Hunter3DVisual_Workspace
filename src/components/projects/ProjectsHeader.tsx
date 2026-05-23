@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Plus, Filter, LayoutGrid, List, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ProjectFormModal } from "@/components/projects/ProjectFormModal";
 import { cn } from "@/lib/utils";
 import type { ProjectViewMode } from "@/types/projects";
 
@@ -21,6 +21,7 @@ export function ProjectsHeader({ total, activeCount, viewMode, search, status }:
   const router = useRouter();
   const pathname = usePathname();
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const updateParams = (updates: Partial<{ search: string; status: string; view: string }>) => {
     const params = new URLSearchParams();
@@ -45,11 +46,10 @@ export function ProjectsHeader({ total, activeCount, viewMode, search, status }:
             {total} total · {activeCount} active
           </p>
         </div>
-        <Button asChild>
-          <Link href="/projects/new">
-            <Plus className="w-4 h-4" /> New Project
-          </Link>
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="w-4 h-4" /> New Project
         </Button>
+        <ProjectFormModal open={createOpen} onOpenChange={setCreateOpen} />
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">

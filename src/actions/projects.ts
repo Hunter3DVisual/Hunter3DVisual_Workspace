@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { generateProjectCode } from "@/lib/utils";
 import type { ProjectStatus } from "@prisma/client";
-import type { CreateProjectInput, ProjectFilters } from "@/types/projects";
+import type { CreateProjectInput, UpdateProjectInput, ProjectFilters } from "@/types/projects";
 
 export async function getProjects(filters: ProjectFilters = {}) {
   const { search, status, clientId, sortBy = "createdAt", sortDir = "desc" } = filters;
@@ -53,5 +53,54 @@ export async function updateProjectStatus(id: string, status: ProjectStatus) {
   return db.project.update({
     where: { id },
     data: { status },
+  });
+}
+
+export async function updateProject(id: string, input: UpdateProjectInput) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  return db.project.update({
+    where: { id },
+    data: input,
+    include: { client: true },
+  });
+}
+
+export async function deleteProject(id: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  return db.project.delete({ where: { id } });
+}
+
+export async function getProjectById(id: string) {
+  return db.project.findUnique({
+    where: { id },
+    include: {
+      client: true,
+      tasks: {
+        where: { status: { not: "CANCELLED" } },
+        orderBy: { order: "asc" },
+        include: {
+          assignee: { select: { id: true, name: true, avatar: true } },
+        },
+      },
+      pipeline: { orderBy: { order: "asc" } },
+      invoices: {
+        select: {
+          id: true,
+          number: true,
+          status: true,
+          total: true,
+          currency: true,
+          dueDate: true,
+          issueDate: true,
+        },
+        orderBy: { issueDate: "desc" },
+        take: 10,
+      },
+      _count: { select: { tasks: true, assets: true, renders: true } },
+    },
   });
 }
