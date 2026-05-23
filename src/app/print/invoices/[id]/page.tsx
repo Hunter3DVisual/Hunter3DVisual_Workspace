@@ -197,14 +197,16 @@ export default async function InvoicePrintPage({ params }: Props) {
         {/* ── Totals ─────────────────────────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 36 }}>
           <div style={{ minWidth: 260 }}>
-            {[
-              ["Subtotal", fmt(invoice.subtotal, currency), false],
-              invoice.tax > 0 ? ["Tax", "+" + fmt(invoice.tax, currency), false] : null,
-              invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency), false] : null,
-            ].filter(Boolean).map(([label, value]) => (
-              <div key={label as string} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #f3f4f6" }}>
-                <span style={{ color: "#6b7280" }}>{label as string}</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 500 }}>{value as string}</span>
+            {(
+              [
+                ["Subtotal", fmt(invoice.subtotal, currency)],
+                invoice.tax > 0 ? ["Tax", "+" + fmt(invoice.tax, currency)] : null,
+                invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency)] : null,
+              ].filter(Boolean) as [string, string][]
+            ).map(([label, value]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #f3f4f6" }}>
+                <span style={{ color: "#6b7280" }}>{label}</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 500 }}>{value}</span>
               </div>
             ))}
             <div style={{
