@@ -4,6 +4,13 @@ import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import type { InvoiceFilters, CreateInvoiceInput, Transaction } from "@/types/finance";
 
+export async function getProjectsForSelect() {
+  return db.project.findMany({
+    select: { id: true, name: true, code: true },
+    orderBy: { name: "asc" },
+  });
+}
+
 export async function getFinanceStats() {
   const [paidAgg, pendingInvoices] = await Promise.all([
     db.invoice.aggregate({
@@ -39,7 +46,7 @@ export async function getRecentTransactions(): Promise<Transaction[]> {
   return invoices.map((inv) => ({
     id: inv.id,
     type: "income" as const,
-    description: `Invoice ${inv.number}`,
+    description: "Invoice " + inv.number,
     amount: inv.total,
     date: inv.paidAt ?? inv.updatedAt,
     invoiceNumber: inv.number,
@@ -73,20 +80,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const {
-    number,
-    clientId,
-    projectId,
-    dueDate,
-    subtotal,
-    tax = 0,
-    discount = 0,
-    total,
-    currency = "USD",
-    notes,
-    terms,
-    items,
-  } = input;
+  const { number, clientId, projectId, dueDate, subtotal, tax = 0, discount = 0, total, currency = "USD", notes, terms, items } = input;
 
   return db.invoice.create({
     data: { number, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items },
@@ -112,6 +106,31 @@ export async function updateInvoiceStatus(id: string, status: string) {
     data: {
       status: status as any,
       ...(status === "PAID" ? { paidAt: new Date() } : {}),
+    },
+  });
+}
+
+export async function updateInvoice(id: string, input: Partial<CreateInvoiceInput>) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const { number, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
+
+  return db.invoice.update({
+    where: { id },
+    data: {
+      ...(number !== undefined && { number }),
+      ...(clientId !== undefined && { clientId }),
+      ...(projectId !== undefined && { projectId }),
+      ...(dueDate !== undefined && { dueDate }),
+      ...(subtotal !== undefined && { subtotal }),
+      ...(tax !== undefined && { tax }),
+      ...(discount !== undefined && { discount }),
+      ...(total !== undefined && { total }),
+      ...(currency !== undefined && { currency }),
+      ...(notes !== undefined && { notes }),
+      ...(terms !== undefined && { terms }),
+      ...(items !== undefined && { items }),
     },
   });
 }

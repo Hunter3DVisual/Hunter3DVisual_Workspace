@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getFinanceStats, getRecentTransactions } from "@/actions/finance";
 import { FinanceStats } from "@/components/finance/FinanceStats";
 import { DollarSign, ArrowDownRight, ArrowUpRight } from "lucide-react";

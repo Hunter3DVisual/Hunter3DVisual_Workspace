@@ -26,10 +26,20 @@ export type Transaction = {
 };
 
 export type InvoiceLineItem = {
+  category?: string;
   description: string;
   quantity: number;
-  rate: number;
-  amount: number;
+  unitPrice: number;
+  total: number;
+};
+
+export type BankingInfo = {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  swift: string;
+  bankAddress: string;
+  currency: string;
 };
 
 export type CreateInvoiceInput = {

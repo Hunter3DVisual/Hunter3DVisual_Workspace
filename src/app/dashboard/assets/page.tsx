@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { Layers, FolderOpen, ImageIcon, Film, FileArchive } from "lucide-react";
 
 const CATEGORIES = [

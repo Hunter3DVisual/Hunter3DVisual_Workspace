@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getDashboardStats, getRevenueChartData } from "@/actions/dashboard";
 import { getProjects } from "@/actions/projects";
 import { DashboardHero } from "@/components/dashboard/dashboard-hero";

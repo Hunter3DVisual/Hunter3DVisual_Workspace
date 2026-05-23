@@ -12,7 +12,8 @@ import { createDocument } from "@/actions/documents";
 import { ContractTemplate } from "@/components/documents/templates/ContractTemplate";
 import { LiquidationTemplate } from "@/components/documents/templates/LiquidationTemplate";
 import { InvoiceTemplate } from "@/components/documents/templates/InvoiceTemplate";
-import type { DocumentType, ClientInfo, ScopeItem, LineItem } from "@/types/documents";
+import type { DocumentType, ClientInfo, ScopeItem, LineItem, ServiceType } from "@/types/documents";
+import { SERVICE_TYPE_LABELS } from "@/types/documents";
 
 interface ClientOption {
   id: string;
@@ -95,6 +96,7 @@ export function DocumentWizard({ clients, projects }: DocumentWizardProps) {
   const [lineItems, setLineItems] = useState<LineItem[]>([emptyLineItem()]);
   const [totalAmount, setTotalAmount] = useState<number>(0);
   const [notes, setNotes] = useState("");
+  const [projectPrefix, setProjectPrefix] = useState("");
 
   const patchClientInfo = useCallback((field: keyof ClientInfo, val: string) => {
     setClientInfo((prev) => ({ ...prev, [field]: val }));
@@ -142,6 +144,41 @@ export function DocumentWizard({ clients, projects }: DocumentWizardProps) {
         const sum = next.reduce((s, item) => s + Number(item.qty) * Number(item.unitPrice), 0);
         setTotalAmount(sum);
       }
+      return next;
+    });
+  }
+
+  function applyServiceType(i: number, svcType: ServiceType) {
+    const meta = SERVICE_TYPE_LABELS[svcType];
+    setLineItems((prev) => {
+      const next = prev.map((item, idx) => {
+        if (idx !== i) return item;
+        return {
+          ...item,
+          serviceType: svcType,
+          description: meta.en,
+          unitPrice: meta.defaultPrice > 0 ? meta.defaultPrice : item.unitPrice,
+        };
+      });
+      const sum = next.reduce((s, item) => s + Number(item.qty) * Number(item.unitPrice), 0);
+      setTotalAmount(sum);
+      return next;
+    });
+  }
+
+  function quickAddServiceType(svcType: ServiceType) {
+    const meta = SERVICE_TYPE_LABELS[svcType];
+    setLineItems((prev) => {
+      const newItem: LineItem = {
+        item: projectPrefix ? `${projectPrefix} - ` : "",
+        description: meta.en,
+        qty: 1,
+        unitPrice: meta.defaultPrice,
+        serviceType: svcType,
+      };
+      const next = [...prev, newItem];
+      const sum = next.reduce((s, item) => s + Number(item.qty) * Number(item.unitPrice), 0);
+      setTotalAmount(sum);
       return next;
     });
   }
@@ -434,52 +471,142 @@ export function DocumentWizard({ clients, projects }: DocumentWizardProps) {
                 )}
 
                 {type === "INVOICE" && (
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-semibold text-foreground">Hạng mục / Line Items</h3>
-                      <Button type="button" variant="outline" size="sm" onClick={addLineItem} className="gap-1 h-7 text-xs border-hunter-border">
-                        <Plus className="w-3 h-3" /> Add Row
-                      </Button>
+                  <div className="space-y-4">
+
+                    {/* Project Prefix */}
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Tên dự án / Project Prefix (tự ghép vào tên view)</Label>
+                      <Input
+                        className={inputCls}
+                        placeholder="VD: VM Park"
+                        value={projectPrefix}
+                        onChange={(e) => setProjectPrefix(e.target.value)}
+                      />
                     </div>
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground px-1">
-                        <span className="col-span-3">Item</span>
-                        <span className="col-span-3">Description</span>
-                        <span className="col-span-1 text-center">Qty</span>
-                        <span className="col-span-2 text-right">Unit Price</span>
-                        <span className="col-span-2 text-right">Amount</span>
+
+                    {/* Quick-add service type buttons */}
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Thêm nhanh / Quick Add</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {(Object.keys(SERVICE_TYPE_LABELS) as ServiceType[]).map((svcType) => {
+                          const meta = SERVICE_TYPE_LABELS[svcType];
+                          return (
+                            <button
+                              key={svcType}
+                              type="button"
+                              onClick={() => quickAddServiceType(svcType)}
+                              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-hunter-border bg-hunter-elevated hover:border-[#E8521A] hover:text-[#E8521A] transition-colors text-xs font-medium text-foreground"
+                            >
+                              <Plus className="w-3 h-3" />
+                              {meta.vi}
+                              {meta.defaultPrice > 0 && (
+                                <span className="text-muted-foreground ml-0.5">${meta.defaultPrice}</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                        <button
+                          type="button"
+                          onClick={addLineItem}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-dashed border-hunter-border hover:border-indigo-500 hover:text-indigo-400 transition-colors text-xs font-medium text-muted-foreground"
+                        >
+                          <Plus className="w-3 h-3" /> Dòng trống
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Line Items Table */}
+                    <div className="space-y-1">
+                      <div className="grid grid-cols-12 gap-2 text-xs text-muted-foreground px-1 mb-1">
+                        <span className="col-span-1">Loại</span>
+                        <span className="col-span-4">Tên view / Item</span>
+                        <span className="col-span-2">Mô tả</span>
+                        <span className="col-span-1 text-center">SL</span>
+                        <span className="col-span-2 text-right">Đơn giá</span>
+                        <span className="col-span-1 text-right">Tổng</span>
                         <span className="col-span-1" />
                       </div>
+
                       {lineItems.map((item, i) => (
-                        <div key={i} className="grid grid-cols-12 gap-2 items-center">
-                          <Input className={cn(inputCls, "col-span-3")} placeholder="Item" value={item.item} onChange={(e) => patchLineItem(i, "item", e.target.value)} />
-                          <Input className={cn(inputCls, "col-span-3")} placeholder="Description" value={item.description} onChange={(e) => patchLineItem(i, "description", e.target.value)} />
-                          <Input className={cn(inputCls, "col-span-1")} type="number" min={1} value={item.qty} onChange={(e) => patchLineItem(i, "qty", Number(e.target.value))} />
-                          <Input className={cn(inputCls, "col-span-2")} type="number" min={0} step={100} value={item.unitPrice} onChange={(e) => patchLineItem(i, "unitPrice", Number(e.target.value))} />
-                          <div className="col-span-2 text-right text-sm text-muted-foreground pr-1">
-                            {(item.qty * item.unitPrice).toLocaleString()}
+                        <div key={i} className="rounded-lg border border-hunter-border bg-hunter-elevated/40 p-2 space-y-1.5">
+                          {/* Service type chips */}
+                          <div className="flex flex-wrap gap-1">
+                            {(Object.keys(SERVICE_TYPE_LABELS) as ServiceType[]).map((svcType) => {
+                              const meta = SERVICE_TYPE_LABELS[svcType];
+                              const active = item.serviceType === svcType;
+                              return (
+                                <button
+                                  key={svcType}
+                                  type="button"
+                                  onClick={() => applyServiceType(i, svcType)}
+                                  className={cn(
+                                    "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
+                                    active
+                                      ? "bg-[#E8521A] text-white border-[#E8521A]"
+                                      : "border-hunter-border text-muted-foreground hover:border-[#E8521A] hover:text-[#E8521A]"
+                                  )}
+                                >
+                                  {meta.vi}
+                                </button>
+                              );
+                            })}
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => removeLineItem(i)}
-                            disabled={lineItems.length === 1}
-                            className="col-span-1 flex justify-center text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-30"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {/* Row inputs */}
+                          <div className="grid grid-cols-12 gap-2 items-center">
+                            <Input
+                              className={cn(inputCls, "col-span-5")}
+                              placeholder={projectPrefix ? `${projectPrefix} - tên view` : "Tên view / Item name"}
+                              value={item.item}
+                              onChange={(e) => patchLineItem(i, "item", e.target.value)}
+                            />
+                            <Input
+                              className={cn(inputCls, "col-span-2")}
+                              placeholder="Mô tả"
+                              value={item.description}
+                              onChange={(e) => patchLineItem(i, "description", e.target.value)}
+                            />
+                            <Input
+                              className={cn(inputCls, "col-span-1")}
+                              type="number" min={1}
+                              value={item.qty}
+                              onChange={(e) => patchLineItem(i, "qty", Number(e.target.value))}
+                            />
+                            <Input
+                              className={cn(inputCls, "col-span-2")}
+                              type="number" min={0} step={50}
+                              value={item.unitPrice}
+                              onChange={(e) => patchLineItem(i, "unitPrice", Number(e.target.value))}
+                            />
+                            <div className="col-span-1 text-right text-xs font-medium text-foreground pr-1">
+                              {'$'}{(item.qty * item.unitPrice).toLocaleString()}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeLineItem(i)}
+                              disabled={lineItems.length === 1}
+                              className="col-span-1 flex justify-center text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-30"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="mt-4 flex items-center justify-end gap-3">
-                      <span className="text-sm text-muted-foreground">Total:</span>
-                      <span className="text-sm font-semibold text-foreground">{totalAmount.toLocaleString()} USD</span>
+                    {/* Total */}
+                    <div className="flex items-center justify-between rounded-lg bg-[#E8521A]/10 border border-[#E8521A]/30 px-4 py-2.5">
+                      <span className="text-sm text-muted-foreground">{lineItems.length} hạng mục</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Total:</span>
+                        <span className="text-base font-bold text-[#E8521A]">${totalAmount.toLocaleString()} USD</span>
+                      </div>
                     </div>
 
-                    <div className="mt-3 space-y-1.5">
+                    {/* Notes */}
+                    <div className="space-y-1.5">
                       <Label className={labelCls}>Ghi chú / Notes</Label>
                       <textarea
-                        rows={3}
+                        rows={2}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         className="w-full rounded-md border border-hunter-border bg-hunter-elevated text-sm text-foreground px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
@@ -494,6 +621,138 @@ export function DocumentWizard({ clients, projects }: DocumentWizardProps) {
             {step === 3 && (
               <div>
                 <h2 className="text-base font-semibold text-foreground mb-4">Xem trước / Preview</h2>
+                <div className="overflow-auto max-h-[65vh] rounded-lg border border-hunter-border bg-white">
+                  {type === "CONTRACT" && signDate && startDate && endDate && (
+                    <ContractTemplate
+                      contractNumber={contractNumber}
+                      signDate={signDate}
+                      startDate={startDate}
+                      endDate={endDate}
+                      clientInfo={clientInfo}
+                      scopeItems={scopeItems}
+                      totalAmount={totalAmount}
+                    />
+                  )}
+                  {type === "LIQUIDATION" && signDate && liquidationDate && (
+                    <LiquidationTemplate
+                      contractNumber={contractNumber}
+                      signDate={signDate}
+                      liquidationDate={liquidationDate}
+                      clientInfo={clientInfo}
+                      scopeItems={scopeItems}
+                      totalAmount={totalAmount}
+                    />
+                  )}
+                  {type === "INVOICE" && signDate && (
+                    <InvoiceTemplate
+                      contractNumber={contractNumber}
+                      signDate={signDate}
+                      clientInfo={clientInfo}
+                      lineItems={lineItems}
+                      totalAmount={totalAmount}
+                      notes={notes || undefined}
+                    />
+                  )}
+                  {!(signDate) && (
+                    <div className="p-12 text-center text-muted-foreground text-sm">
+                      Please complete the details step to preview the document.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="flex flex-col items-center justify-center py-12 gap-4">
+                <div className="w-14 h-14 rounded-full bg-indigo-500/15 flex items-center justify-center">
+                  <FileText className="w-7 h-7 text-indigo-400" />
+                </div>
+                <div className="text-center">
+                  <h2 className="text-base font-semibold text-foreground mb-1">Ready to save</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {type} · {contractNumber || "No number"} · {totalAmount.toLocaleString()} USD
+                  </p>
+                </div>
+                {error && (
+                  <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-4 py-2">{error}</p>
+                )}
+                <Button onClick={handleSave} disabled={saving} className="gap-2 min-w-32">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  {saving ? "Saving..." : "Save Document"}
+                </Button>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      <div className="flex items-center justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setStep((s) => s - 1)}
+          disabled={step === 0}
+          className="gap-2 border-hunter-border"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Back
+        </Button>
+        {step < STEPS.length - 1 && (
+          <Button
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!canAdvance()}
+            className="gap-2"
+          >
+            Next
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+                              {'$'}{(item.qty * item.unitPrice).toLocaleString()}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeLineItem(i)}
+                              disabled={lineItems.length === 1}
+                              className="col-span-1 flex justify-center text-muted-foreground hover:text-red-400 transition-colors disabled:opacity-30"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Total */}
+                    <div className="flex items-center justify-between rounded-lg bg-[#E8521A]/10 border border-[#E8521A]/30 px-4 py-2.5">
+                      <span className="text-sm text-muted-foreground">{lineItems.length} hang muc</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Total:</span>
+                        <span className="text-base font-bold text-[#E8521A]">${totalAmount.toLocaleString()} USD</span>
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    <div className="space-y-1.5">
+                      <Label className={labelCls}>Ghi chu / Notes</Label>
+                      <textarea
+                        rows={2}
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        className="w-full rounded-md border border-hunter-border bg-hunter-elevated text-sm text-foreground px-3 py-2 focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none"
+                        placeholder="Additional notes..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {step === 3 && (
+              <div>
+                <h2 className="text-base font-semibold text-foreground mb-4">Xem truoc / Preview</h2>
                 <div className="overflow-auto max-h-[65vh] rounded-lg border border-hunter-border bg-white">
                   {type === "CONTRACT" && signDate && startDate && endDate && (
                     <ContractTemplate

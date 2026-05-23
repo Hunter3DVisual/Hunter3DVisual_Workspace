@@ -1,18 +1,10 @@
-import Link from "next/link";
+export const dynamic = "force-dynamic";
+
 import { getInvoices } from "@/actions/finance";
 import { InvoiceCard } from "@/components/invoices/InvoiceCard";
+import { InvoicesHeader } from "@/components/invoices/InvoicesHeader";
 import { FileText } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { InvoiceStatus } from "@prisma/client";
-
-const STATUS_TABS = [
-  { label: "All", value: "" },
-  { label: "Draft", value: "DRAFT" },
-  { label: "Sent", value: "SENT" },
-  { label: "Viewed", value: "VIEWED" },
-  { label: "Paid", value: "PAID" },
-  { label: "Overdue", value: "OVERDUE" },
-] as const;
 
 interface InvoicesPageProps {
   searchParams: Promise<{ status?: string; search?: string }>;
@@ -28,35 +20,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
 
   return (
     <div className="space-y-6 max-w-[1400px]">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Invoices</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {invoices.length} invoice{invoices.length !== 1 ? "s" : ""}
-            {status ? ` · ${status.charAt(0) + status.slice(1).toLowerCase()}` : ""}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-1 p-1 rounded-lg bg-hunter-elevated border border-hunter-border w-fit overflow-x-auto">
-        {STATUS_TABS.map((tab) => {
-          const isActive = (status ?? "") === tab.value;
-          return (
-            <Link
-              key={tab.value}
-              href={tab.value ? `/dashboard/invoices?status=${tab.value}` : "/dashboard/invoices"}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
-                isActive
-                  ? "bg-hunter-card text-foreground border border-hunter-border shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
+      <InvoicesHeader total={invoices.length} activeStatus={status} />
 
       {invoices.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 text-center">

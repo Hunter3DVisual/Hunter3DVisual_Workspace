@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getAutomations } from "@/actions/automation";
 import { AutomationHeader } from "@/components/automation/AutomationHeader";
 import { AutomationCard } from "@/components/automation/AutomationCard";

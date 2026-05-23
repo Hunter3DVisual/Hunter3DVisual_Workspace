@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { FileText } from "lucide-react";
 import { getDocuments } from "@/actions/documents";
 import { DocumentCard } from "@/components/documents/DocumentCard";

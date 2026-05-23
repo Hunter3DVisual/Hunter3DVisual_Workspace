@@ -1,0 +1,15 @@
+# About Me
+
+I am Hunter Luu, founder of Hunter3DVisual.
+
+I work in architectural visualization, focusing on realistic rendering, animation, and visual storytelling for international clients.
+
+Main tools:
+- 3ds Max
+- Corona Renderer
+- Photoshop
+
+My goals:
+- Build an international-quality studio
+- Improve workflow efficiency
+- Create cinematic and realistic visuals

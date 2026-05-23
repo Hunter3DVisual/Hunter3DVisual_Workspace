@@ -31,9 +31,31 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# prisma
-prisma/migrations/**/*.sql
+# ─── CRITICAL FIX: Prisma migrations MUST be committed for production deployments
+# prisma/migrations/**/*.sql  ← REMOVED: was blocking production migrations
 
 # editor
 .vscode/
 .idea/
+
+# studio assets (large binary files — store in Supabase Storage instead)
+*.zip
+*.rar
+*.7z
+*.blend
+*.max
+*.fbx
+*.obj
+*.mb
+*.ma
+
+# personal notes (không commit lên repo)
+"# AI Style.txt"
+"# About Me.txt"
+
+# PM2 (local-only process manager, not needed in cloud)
+ecosystem.config.js
+
+# OS
+Thumbs.db
+Desktop.ini

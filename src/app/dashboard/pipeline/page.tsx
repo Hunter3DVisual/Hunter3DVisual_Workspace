@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getPipeline } from "@/actions/pipeline";
 import { PipelineHeader } from "@/components/pipeline/PipelineHeader";
 import { PipelineStageCard } from "@/components/pipeline/PipelineStage";

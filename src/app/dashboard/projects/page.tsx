@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getProjects } from "@/actions/projects";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectsHeader } from "@/components/projects/ProjectsHeader";

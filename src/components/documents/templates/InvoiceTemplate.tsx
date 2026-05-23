@@ -1,6 +1,7 @@
 import { numberToWordsEN, numberToWordsVI } from "@/lib/numberToWords";
 import { format } from "date-fns";
 import type { ClientInfo, LineItem } from "@/types/documents";
+import { SERVICE_TYPE_LABELS } from "@/types/documents";
 
 interface InvoiceTemplateProps {
   contractNumber: string;
@@ -205,7 +206,25 @@ export function InvoiceTemplate({
                   <tr key={i}>
                     <td style={tdCenter}>{i + 1}</td>
                     <td style={tdBase}>{item.item}</td>
-                    <td style={tdBase}>{item.description}</td>
+                    <td style={tdBase}>
+                      {item.serviceType && (
+                        <span style={{
+                          display: "inline-block",
+                          background: "#FFF0EA",
+                          color: "#E8521A",
+                          border: "1px solid #E8521A55",
+                          borderRadius: "4px",
+                          fontSize: "8.5pt",
+                          fontWeight: 600,
+                          padding: "1px 6px",
+                          marginBottom: "2px",
+                          marginRight: "4px",
+                        }}>
+                          {SERVICE_TYPE_LABELS[item.serviceType].vi}
+                        </span>
+                      )}
+                      {item.description}
+                    </td>
                     <td style={tdCenter}>{item.qty}</td>
                     <td style={tdRight}>{item.unitPrice.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
                     <td style={tdRight}>{amount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</td>
@@ -246,14 +265,14 @@ export function InvoiceTemplate({
 
           {notes && (
             <div style={notesBox}>
-              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>Ghi chú / Notes:</div>
+              <div style={{ fontWeight: "bold", marginBottom: "4px" }}>Ghi chu / Notes:</div>
               <div>{notes}</div>
             </div>
           )}
 
           <div style={sigRow}>
             <div style={{ fontSize: "11pt", color: "#555" }}>
-              <div style={{ fontWeight: "bold", color: "#1a1a1a" }}>Chữ ký / Signature:</div>
+              <div style={{ fontWeight: "bold", color: "#1a1a1a" }}>Chu ky / Signature:</div>
               <div style={{ marginTop: "48px", borderTop: "1px solid #1a1a1a", paddingTop: "4px", textAlign: "center" }}>
                 <div style={{ fontWeight: "bold" }}>Hunter 3Dvisual</div>
               </div>

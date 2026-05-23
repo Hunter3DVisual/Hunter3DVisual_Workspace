@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTasks } from "@/actions/tasks";
 import { KanbanBoard } from "@/components/tasks/KanbanBoard";
 import { TasksHeader } from "@/components/tasks/TasksHeader";

@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getTeamMembers } from "@/actions/team";
 import { MemberCard } from "@/components/team/MemberCard";
 import { TeamHeader } from "@/components/team/TeamHeader";
