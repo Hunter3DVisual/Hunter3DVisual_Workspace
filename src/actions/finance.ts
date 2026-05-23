@@ -93,6 +93,16 @@ export async function createInvoice(input: CreateInvoiceInput) {
   });
 }
 
+export async function getInvoiceById(id: string) {
+  return db.invoice.findUnique({
+    where: { id },
+    include: {
+      client: true,
+      project: { select: { id: true, name: true, code: true } },
+    },
+  });
+}
+
 export async function updateInvoiceStatus(id: string, status: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");

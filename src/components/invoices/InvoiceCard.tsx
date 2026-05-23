@@ -37,7 +37,7 @@ export function InvoiceCard({ invoice, index = 0 }: InvoiceCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.35, delay: index * 0.05 }}
     >
-      <Link href={`/invoices/${invoice.id}`} className="block">
+      <Link href={`/dashboard/invoices/${invoice.id}`} className="block">
         <Card glow className="group cursor-pointer">
           <CardContent className="p-5">
             <div className="flex items-start justify-between gap-3">

@@ -44,7 +44,7 @@ export default async function InvoicesPage({ searchParams }: InvoicesPageProps) 
           return (
             <Link
               key={tab.value}
-              href={tab.value ? `/invoices?status=${tab.value}` : "/invoices"}
+              href={tab.value ? `/dashboard/invoices?status=${tab.value}` : "/dashboard/invoices"}
               className={cn(
                 "px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap",
                 isActive
