@@ -34,12 +34,18 @@ export type InvoiceLineItem = {
 };
 
 export type BankingInfo = {
+  // Receiving Bank
   bankName: string;
+  bankAddress: string;
+  bankPostalCode: string;
+  // Account Holder
   accountName: string;
   accountNumber: string;
   swift: string;
-  bankAddress: string;
   currency: string;
+  holderAddress: string;
+  holderCity: string;
+  holderPostalCode: string;
 };
 
 export type CreateInvoiceInput = {

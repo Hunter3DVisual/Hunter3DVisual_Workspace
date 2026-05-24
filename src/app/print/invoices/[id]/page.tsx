@@ -45,14 +45,45 @@ function fmtDate(d: Date | string) {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 }
 
-function parseBankingFromTerms(terms: string | null): { banking: string[]; other: string } {
-  if (!terms) return { banking: [], other: "" };
-  const sep = "─── Banking / Payment Details ───";
-  const idx = terms.indexOf(sep);
-  if (idx === -1) return { banking: [], other: terms };
+const BANKING_SEP = "─── Banking / Payment Details ───";
+
+type BankingParsed = {
+  receivingBank: { key: string; val: string }[];
+  accountHolder: { key: string; val: string }[];
+  other: string;
+};
+
+function parseKV(lines: string[]): { key: string; val: string }[] {
+  return lines.flatMap(line => {
+    const idx = line.indexOf(": ");
+    if (idx === -1 || line.startsWith("[")) return [];
+    return [{ key: line.slice(0, idx), val: line.slice(idx + 2) }];
+  });
+}
+
+function parseBankingFromTerms(terms: string | null): BankingParsed {
+  if (!terms) return { receivingBank: [], accountHolder: [], other: "" };
+  const idx = terms.indexOf(BANKING_SEP);
+  if (idx === -1) return { receivingBank: [], accountHolder: [], other: terms };
+
   const before = terms.slice(0, idx).trim();
-  const after  = terms.slice(idx + sep.length).trim().split("\n").filter(Boolean);
-  return { banking: after, other: before };
+  const block  = terms.slice(idx + BANKING_SEP.length).trim();
+  const lines  = block.split("\n").map(l => l.trim()).filter(Boolean);
+
+  const hasSubSections = lines.some(l => l === "[Receiving Bank]" || l === "[Account Holder]");
+  if (!hasSubSections) {
+    return { receivingBank: parseKV(lines), accountHolder: [], other: before };
+  }
+
+  const receivingBank: string[] = [];
+  const accountHolder: string[] = [];
+  let cur: string[] = [];
+  for (const line of lines) {
+    if (line === "[Receiving Bank]")  { cur = receivingBank; continue; }
+    if (line === "[Account Holder]")  { cur = accountHolder; continue; }
+    cur.push(line);
+  }
+  return { receivingBank: parseKV(receivingBank), accountHolder: parseKV(accountHolder), other: before };
 }
 
 export default async function InvoicePrintPage({ params }: Props) {
@@ -61,7 +92,8 @@ export default async function InvoicePrintPage({ params }: Props) {
   if (!invoice) notFound();
 
   const items = (invoice.items as InvoiceLineItem[]) ?? [];
-  const { banking, other: paymentTerms } = parseBankingFromTerms(invoice.terms);
+  const { receivingBank, accountHolder, other: paymentTerms } = parseBankingFromTerms(invoice.terms);
+  const hasBanking = receivingBank.length > 0 || accountHolder.length > 0;
   const statusColor = STATUS_COLOR[invoice.status] ?? "#6b7280";
   const currency = invoice.currency ?? "USD";
 
@@ -125,22 +157,23 @@ export default async function InvoicePrintPage({ params }: Props) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 36 }}>
           {/* Dates */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#9ca3af", textTransform: "uppercase", marginBottom: 10 }}>Invoice Details</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 10 }}>Invoice Details</div>
             {[
               ["Issue Date", fmtDate(invoice.issueDate)],
               ["Due Date",   fmtDate(invoice.dueDate)],
               ["Currency",   currency],
+              ...((invoice as any).contractRef ? [["Contract Ref", (invoice as any).contractRef]] : []),
             ].map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 5 }}>
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6, gap: 16 }}>
                 <span style={{ color: "#6b7280" }}>{label}</span>
-                <span style={{ fontWeight: 500, color: "#111" }}>{value}</span>
+                <span style={{ fontWeight: 600, color: "#111", fontFamily: label === "Contract Ref" ? "monospace" : "inherit", textAlign: "right" }}>{value}</span>
               </div>
             ))}
           </div>
 
           {/* Bill To */}
           <div>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#9ca3af", textTransform: "uppercase", marginBottom: 10 }}>Bill To</div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 10 }}>Bill To</div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 3 }}>{invoice.client.name}</div>
             {invoice.client.company && (
               <div style={{ fontSize: 13, color: "#374151", marginBottom: 2 }}>{invoice.client.company}</div>
@@ -158,11 +191,11 @@ export default async function InvoicePrintPage({ params }: Props) {
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
           <thead>
             <tr style={{ background: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6b7280", textTransform: "uppercase" }}>Service</th>
-              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6b7280", textTransform: "uppercase" }}>Description</th>
-              <th style={{ textAlign: "center", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6b7280", textTransform: "uppercase" }}>Qty</th>
-              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6b7280", textTransform: "uppercase" }}>Unit Price</th>
-              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "#6b7280", textTransform: "uppercase" }}>Total</th>
+              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Service</th>
+              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Description</th>
+              <th style={{ textAlign: "center", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Qty</th>
+              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Unit Price</th>
+              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -230,40 +263,60 @@ export default async function InvoicePrintPage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Notes + Banking ────────────────────────────────────── */}
-        <div style={{ display: "grid", gridTemplateColumns: banking.length > 0 ? "1fr 1fr" : "1fr", gap: 24, marginBottom: 32 }}>
-          {invoice.notes && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#9ca3af", textTransform: "uppercase", marginBottom: 8 }}>Notes</div>
-              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.7, whiteSpace: "pre-line", background: "#f9fafb", borderRadius: 8, padding: 14, border: "1px solid #e5e7eb" }}>
+        {/* ── Notes ──────────────────────────────────────────────── */}
+        {(invoice.notes || paymentTerms) && (
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 8 }}>Notes</div>
+            {invoice.notes && (
+              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.75, whiteSpace: "pre-line", background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
                 {invoice.notes}
               </div>
-              {paymentTerms && (
-                <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.7, whiteSpace: "pre-line", marginTop: 12, background: "#f9fafb", borderRadius: 8, padding: 14, border: "1px solid #e5e7eb" }}>
-                  {paymentTerms}
+            )}
+            {paymentTerms && (
+              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.75, whiteSpace: "pre-line", marginTop: 10, background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
+                {paymentTerms}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Banking Details ─────────────────────────────────────── */}
+        {hasBanking && (
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 12 }}>Banking / Payment Details</div>
+            <div style={{ display: "grid", gridTemplateColumns: accountHolder.length > 0 ? "1fr 1fr" : "1fr", gap: 16 }}>
+
+              {/* Receiving Bank */}
+              {receivingBank.length > 0 && (
+                <div style={{ background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Receiving Bank</div>
+                  {receivingBank.map(({ key, val }, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, gap: 12 }}>
+                      <span style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{key}</span>
+                      <span style={{ fontWeight: 600, color: "#111", textAlign: "right" }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Account Holder */}
+              {accountHolder.length > 0 && (
+                <div style={{ background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Account Holder</div>
+                  {accountHolder.map(({ key, val }, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, gap: 12 }}>
+                      <span style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{key}</span>
+                      <span style={{
+                        fontWeight: 600, color: "#111", textAlign: "right",
+                        fontFamily: key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit",
+                      }}>{val}</span>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-          )}
-
-          {banking.length > 0 && (
-            <div>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "#9ca3af", textTransform: "uppercase", marginBottom: 8 }}>Banking Details</div>
-              <div style={{ background: "#f0fdf4", borderRadius: 8, padding: 14, border: "1px solid #bbf7d0" }}>
-                {banking.map((line, i) => {
-                  const [key, ...rest] = line.split(": ");
-                  const val = rest.join(": ");
-                  return val ? (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 5, gap: 12 }}>
-                      <span style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{key}</span>
-                      <span style={{ fontWeight: 600, color: "#111", fontFamily: key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit", textAlign: "right" }}>{val}</span>
-                    </div>
-                  ) : null;
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Footer ─────────────────────────────────────────────── */}
         <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>

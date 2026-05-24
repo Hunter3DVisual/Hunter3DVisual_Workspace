@@ -59,13 +59,19 @@ const NOTE_PRESETS = [
 
 const BANKING_KEY = "h3dv_banking_defaults";
 const DEFAULT_BANKING: BankingInfo = {
-  bankName:      "ACB – Asia Commercial Bank",
-  accountName:   "CTY TNHH HUNTER 3DVISUAL",
-  accountNumber: "41163457",
-  swift:         "ASCBVNVX",
-  bankAddress:   "442 Nguyen Thi Minh Khai Street, District 3, Ho Chi Minh City, Vietnam",
-  currency:      "USD",
+  bankName:        "ACB – Asia Commercial Bank",
+  bankAddress:     "442 Nguyen Thi Minh Khai Street, District 3, Ho Chi Minh City, Vietnam",
+  bankPostalCode:  "70000",
+  accountName:     "CTY TNHH HUNTER 3DVISUAL",
+  accountNumber:   "41163457",
+  swift:           "ASCBVNVX",
+  currency:        "USD",
+  holderAddress:   "196 Truong Xuan Nam Street, Ngu Hanh Son Ward, Da Nang City, Vietnam",
+  holderCity:      "Da Nang",
+  holderPostalCode: "59000",
 };
+
+const BANKING_SEP = "─── Banking / Payment Details ───";
 
 function loadBanking(): BankingInfo {
   if (typeof window === "undefined") return DEFAULT_BANKING;
@@ -74,16 +80,25 @@ function loadBanking(): BankingInfo {
 }
 
 function serializeBanking(b: BankingInfo): string {
-  const lines = [
-    "─── Banking / Payment Details ───",
-    b.bankName      && "Bank: " + b.bankName,
-    b.accountName   && "Account Name: " + b.accountName,
-    b.accountNumber && "Account No: " + b.accountNumber,
-    b.swift         && "SWIFT/BIC: " + b.swift,
-    b.currency      && "Currency: " + b.currency,
-    b.bankAddress   && "Address: " + b.bankAddress,
-  ].filter(Boolean);
-  return lines.join("\n");
+  const bank = [
+    "[Receiving Bank]",
+    b.bankName        ? "Bank: " + b.bankName : "",
+    b.bankAddress     ? "Bank Address: " + b.bankAddress : "",
+    b.bankPostalCode  ? "Bank Postal Code: " + b.bankPostalCode : "",
+  ].filter(Boolean).join("\n");
+
+  const holder = [
+    "[Account Holder]",
+    b.accountName      ? "Account Name: " + b.accountName : "",
+    b.accountNumber    ? "Account No: " + b.accountNumber : "",
+    b.swift            ? "SWIFT/BIC: " + b.swift : "",
+    b.currency         ? "Currency: " + b.currency : "",
+    b.holderAddress    ? "Holder Address: " + b.holderAddress : "",
+    b.holderCity       ? "Holder City: " + b.holderCity : "",
+    b.holderPostalCode ? "Holder Postal Code: " + b.holderPostalCode : "",
+  ].filter(Boolean).join("\n");
+
+  return [BANKING_SEP, bank, holder].join("\n\n");
 }
 
 function generateInvoiceNumber() {
@@ -250,8 +265,10 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
         total: +(it.quantity * it.unitPrice).toFixed(2),
       }));
 
+      // Strip any existing banking block before appending (prevents duplicates on re-save)
+      const cleanTerms = ((values.terms ?? "").split(BANKING_SEP)[0]).trim();
       const bankingText = banking.accountNumber ? serializeBanking(banking) : "";
-      const terms = [values.terms, bankingText].filter(Boolean).join("\n\n");
+      const terms = [cleanTerms, bankingText].filter(Boolean).join("\n\n");
 
       const payload = {
         number:      values.number,
@@ -569,40 +586,77 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
             </button>
 
             {bankOpen && (
-              <div className="p-4 space-y-3 border-t border-hunter-border">
-                <div className="grid grid-cols-2 gap-3">
+              <div className="border-t border-hunter-border divide-y divide-hunter-border">
+                {/* Section 1: Receiving Bank */}
+                <div className="p-4 space-y-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#E8521A]">Receiving Bank</p>
                   <div className="space-y-1.5">
                     <Label className="text-xs">Bank Name</Label>
                     <Input value={banking.bankName} onChange={e => setBanking(b => ({ ...b, bankName: e.target.value }))}
-                      placeholder="e.g. BIDV, DBS, Chase" className="h-8 text-xs" />
+                      placeholder="e.g. ACB, BIDV, DBS" className="h-8 text-xs" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Account Name</Label>
-                    <Input value={banking.accountName} onChange={e => setBanking(b => ({ ...b, accountName: e.target.value }))}
-                      placeholder="Legal name on account" className="h-8 text-xs" />
+                    <Label className="text-xs">Bank Address</Label>
+                    <Input value={banking.bankAddress} onChange={e => setBanking(b => ({ ...b, bankAddress: e.target.value }))}
+                      placeholder="Street address (no PO Box)" className="h-8 text-xs" />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Account Number</Label>
-                    <Input value={banking.accountNumber} onChange={e => setBanking(b => ({ ...b, accountNumber: e.target.value }))}
-                      placeholder="Account number" className="h-8 text-xs font-mono" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">SWIFT / BIC</Label>
-                    <Input value={banking.swift} onChange={e => setBanking(b => ({ ...b, swift: e.target.value }))}
-                      placeholder="e.g. BIDVVNVX" className="h-8 text-xs font-mono" />
+                    <Label className="text-xs">Bank Postal / Zip Code</Label>
+                    <Input value={banking.bankPostalCode} onChange={e => setBanking(b => ({ ...b, bankPostalCode: e.target.value }))}
+                      placeholder="70000" className="h-8 text-xs font-mono w-40" />
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Bank Address <span className="text-muted-foreground/50">(optional)</span></Label>
-                  <Input value={banking.bankAddress} onChange={e => setBanking(b => ({ ...b, bankAddress: e.target.value }))}
-                    placeholder="Bank branch address" className="h-8 text-xs" />
+
+                {/* Section 2: Account Holder */}
+                <div className="p-4 space-y-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wider text-[#E8521A]">Account Holder</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Name on Account</Label>
+                      <Input value={banking.accountName} onChange={e => setBanking(b => ({ ...b, accountName: e.target.value }))}
+                        placeholder="Legal company name" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Account Number</Label>
+                      <Input value={banking.accountNumber} onChange={e => setBanking(b => ({ ...b, accountNumber: e.target.value }))}
+                        placeholder="Account number" className="h-8 text-xs font-mono" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">SWIFT / BIC</Label>
+                      <Input value={banking.swift} onChange={e => setBanking(b => ({ ...b, swift: e.target.value }))}
+                        placeholder="e.g. ASCBVNVX" className="h-8 text-xs font-mono" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Currency</Label>
+                      <Input value={banking.currency} onChange={e => setBanking(b => ({ ...b, currency: e.target.value }))}
+                        placeholder="USD" className="h-8 text-xs font-mono" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Holder Address</Label>
+                    <Input value={banking.holderAddress} onChange={e => setBanking(b => ({ ...b, holderAddress: e.target.value }))}
+                      placeholder="Company street address" className="h-8 text-xs" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">City</Label>
+                      <Input value={banking.holderCity} onChange={e => setBanking(b => ({ ...b, holderCity: e.target.value }))}
+                        placeholder="Da Nang" className="h-8 text-xs" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Postal / Zip Code</Label>
+                      <Input value={banking.holderPostalCode} onChange={e => setBanking(b => ({ ...b, holderPostalCode: e.target.value }))}
+                        placeholder="59000" className="h-8 text-xs font-mono" />
+                    </div>
+                  </div>
                 </div>
-                <Button type="button" variant="outline" size="sm"
-                  onClick={saveBankingDefault}
-                  className="gap-1.5 border-hunter-border text-xs">
-                  Save as default
-                </Button>
-                <p className="text-[10px] text-muted-foreground/50">Banking details will be appended to the invoice automatically.</p>
+
+                <div className="p-4 flex items-center justify-between">
+                  <p className="text-[10px] text-muted-foreground/50">Saved per-browser · appended to invoice automatically.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={saveBankingDefault} className="gap-1.5 border-hunter-border text-xs">
+                    Save as default
+                  </Button>
+                </div>
               </div>
             )}
           </div>
