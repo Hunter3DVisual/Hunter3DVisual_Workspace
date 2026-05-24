@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -134,7 +134,6 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
   const [catCounters, setCatCounters] = useState<Record<string, number>>({});
   const [bankOpen, setBankOpen] = useState(false);
   const [banking, setBanking] = useState<BankingInfo>(DEFAULT_BANKING);
-  const notesRef = useRef<HTMLTextAreaElement>(null);
 
   const existingItems = invoice
     ? ((invoice.items as any[]) ?? []).map((it: any) => ({

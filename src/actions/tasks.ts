@@ -50,3 +50,47 @@ export async function updateTaskStatus(id: string, status: TaskStatus) {
     },
   });
 }
+
+export async function updateTask(id: string, input: Partial<CreateTaskInput> & { status?: TaskStatus }) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  const { status, ...rest } = input;
+
+  return db.task.update({
+    where: { id },
+    data: {
+      ...rest,
+      ...(status !== undefined && {
+        status,
+        ...(status === "DONE" ? { completedAt: new Date() } : { completedAt: null }),
+      }),
+    },
+    include: {
+      project: { select: { id: true, name: true, code: true } },
+      assignee: { select: { id: true, name: true, avatar: true } },
+    },
+  });
+}
+
+export async function deleteTask(id: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+
+  return db.task.delete({ where: { id } });
+}
+
+export async function getProjectsForTaskSelect() {
+  return db.project.findMany({
+    select: { id: true, name: true, code: true },
+    where: { status: { notIn: ["ARCHIVED"] } },
+    orderBy: { name: "asc" },
+  });
+}
+
+export async function getMembersForTaskSelect() {
+  return db.user.findMany({
+    select: { id: true, name: true, avatar: true },
+    orderBy: { name: "asc" },
+  });
+}

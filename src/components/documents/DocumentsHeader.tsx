@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Plus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import type { DocumentStatus } from "@/types/documents";
 
 interface DocumentsHeaderProps {
   total: number;

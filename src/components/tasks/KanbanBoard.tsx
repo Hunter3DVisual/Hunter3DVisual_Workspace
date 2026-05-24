@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { updateTaskStatus } from "@/actions/tasks";
 import { TaskCard } from "./TaskCard";
@@ -22,6 +23,7 @@ interface KanbanBoardProps {
 }
 
 export function KanbanBoard({ initialTasks }: KanbanBoardProps) {
+  const router = useRouter();
   const [tasks, setTasks] = useState(initialTasks);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [activeColumn, setActiveColumn] = useState<TaskStatus | null>(null);
@@ -106,6 +108,7 @@ export function KanbanBoard({ initialTasks }: KanbanBoardProps) {
                     onDragEnd={(info, snapBack) =>
                       handleDragEnd(task.id, task.status, info, snapBack)
                     }
+                    onUpdated={() => router.refresh()}
                   />
                 ))}
               </AnimatePresence>

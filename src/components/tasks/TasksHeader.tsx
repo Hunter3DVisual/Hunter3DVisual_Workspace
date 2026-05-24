@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Plus, Search, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TaskFormModal } from "./TaskFormModal";
 
 interface TasksHeaderProps {
   total: number;
@@ -16,6 +17,7 @@ export function TasksHeader({ total, inProgressCount, search }: TasksHeaderProps
   const router = useRouter();
   const pathname = usePathname();
   const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [createOpen, setCreateOpen] = useState(false);
 
   const updateParams = (updates: Partial<{ search: string }>) => {
     const params = new URLSearchParams();
@@ -32,33 +34,41 @@ export function TasksHeader({ total, inProgressCount, search }: TasksHeaderProps
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Tasks</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {total} total · {inProgressCount} in progress
-          </p>
+    <>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Tasks</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {total} total · {inProgressCount} in progress
+            </p>
+          </div>
+          <Button size="sm" className="gap-1.5" onClick={() => setCreateOpen(true)}>
+            <Plus className="w-4 h-4" /> New Task
+          </Button>
         </div>
-        <Button size="sm" className="gap-1.5">
-          <Plus className="w-4 h-4" /> New Task
-        </Button>
+
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1 min-w-[200px] max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search tasks..."
+              className="pl-9 h-8"
+              defaultValue={search ?? ""}
+              onChange={(e) => handleSearch(e.target.value)}
+            />
+          </div>
+          <Button variant="outline" size="sm" className="gap-2 h-8">
+            <SlidersHorizontal className="w-3.5 h-3.5" /> Filter
+          </Button>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          <Input
-            placeholder="Search tasks..."
-            className="pl-9 h-8"
-            defaultValue={search ?? ""}
-            onChange={(e) => handleSearch(e.target.value)}
-          />
-        </div>
-        <Button variant="outline" size="sm" className="gap-2 h-8">
-          <SlidersHorizontal className="w-3.5 h-3.5" /> Filter
-        </Button>
-      </div>
-    </div>
+      <TaskFormModal
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onSuccess={() => router.refresh()}
+      />
+    </>
   );
 }
