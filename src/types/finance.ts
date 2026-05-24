@@ -44,6 +44,7 @@ export type BankingInfo = {
 
 export type CreateInvoiceInput = {
   number: string;
+  contractRef?: string;
   clientId: string;
   projectId?: string;
   dueDate: Date;

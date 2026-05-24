@@ -83,27 +83,35 @@ export default async function InvoicePrintPage({ params }: Props) {
 
         {/* ── Header ──────────────────────────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 40 }}>
+          {/* Company info */}
           <div>
-            <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.5px", color: "#111" }}>
-              Hunter3DVisual
-            </div>
-            <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>Architectural Visualization Studio</div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>hunterluu.47th@gmail.com</div>
-            <div style={{ fontSize: 12, color: "#6b7280" }}>hunter3dvisual.com</div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/logo.png" alt="Hunter3DVisual" style={{ height: 52, width: "auto", marginBottom: 10, display: "block" }} />
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#111", letterSpacing: "0.01em" }}>CTY TNHH HUNTER 3DVISUAL</div>
+            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>196 Trương Xuân Nam, Phường Ngũ Hành Sơn</div>
+            <div style={{ fontSize: 11, color: "#4b5563" }}>Đà Nẵng, Vietnam</div>
+            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>+84 979 592 543</div>
+            <div style={{ fontSize: 11, color: "#4b5563" }}>hunterluu.47th@gmail.com · hunter3dvisual.com</div>
           </div>
 
+          {/* Invoice label + number + status */}
           <div style={{ textAlign: "right" }}>
             <div style={{ fontSize: 32, fontWeight: 800, color: "#E8521A", letterSpacing: "-1px", lineHeight: 1 }}>
               INVOICE
             </div>
-            <div style={{ fontFamily: "monospace", fontSize: 14, color: "#374151", marginTop: 6, fontWeight: 600 }}>
+            <div style={{ fontFamily: "monospace", fontSize: 14, color: "#111", marginTop: 6, fontWeight: 700 }}>
               {invoice.number}
             </div>
+            {(invoice as any).contractRef && (
+              <div style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", marginTop: 3 }}>
+                {(invoice as any).contractRef}
+              </div>
+            )}
             <div style={{
               display: "inline-block", marginTop: 6,
               background: statusColor + "20", color: statusColor,
               border: `1px solid ${statusColor}40`,
-              borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 600, letterSpacing: "0.05em",
+              borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
             }}>
               {invoice.status}
             </div>
@@ -196,7 +204,7 @@ export default async function InvoicePrintPage({ params }: Props) {
 
         {/* ── Totals ─────────────────────────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 36 }}>
-          <div style={{ minWidth: 260 }}>
+          <div style={{ minWidth: 280 }}>
             {(
               [
                 ["Subtotal", fmt(invoice.subtotal, currency)],
@@ -204,18 +212,18 @@ export default async function InvoicePrintPage({ params }: Props) {
                 invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency)] : null,
               ].filter(Boolean) as [string, string][]
             ).map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "5px 0", borderBottom: "1px solid #f3f4f6" }}>
-                <span style={{ color: "#6b7280" }}>{label}</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 500 }}>{value}</span>
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "7px 4px", borderBottom: "1px solid #e5e7eb" }}>
+                <span style={{ color: "#374151", fontWeight: 500 }}>{label}</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#111" }}>{value}</span>
               </div>
             ))}
             <div style={{
-              display: "flex", justifyContent: "space-between",
-              padding: "12px 16px", marginTop: 8,
-              background: "#111", borderRadius: 8,
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              padding: "13px 18px", marginTop: 10,
+              background: "#0a0a0a", borderRadius: 8,
             }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>TOTAL DUE</span>
-              <span style={{ fontSize: 18, fontWeight: 800, color: "#E8521A", fontFamily: "monospace" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb", letterSpacing: "0.06em" }}>TOTAL DUE</span>
+              <span style={{ fontSize: 20, fontWeight: 800, color: "#E8521A", fontFamily: "monospace" }}>
                 {fmt(invoice.total, currency)}
               </span>
             </div>
@@ -260,7 +268,7 @@ export default async function InvoicePrintPage({ params }: Props) {
         {/* ── Footer ─────────────────────────────────────────────── */}
         <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div style={{ fontSize: 11, color: "#9ca3af" }}>
-            Thank you for your business. · hunter3dvisual.com
+            Thank you for your business. · CTY TNHH HUNTER 3DVISUAL · hunter3dvisual.com
           </div>
           <div style={{ fontFamily: "monospace", fontSize: 11, color: "#d1d5db" }}>
             {invoice.number}

@@ -59,7 +59,12 @@ const NOTE_PRESETS = [
 
 const BANKING_KEY = "h3dv_banking_defaults";
 const DEFAULT_BANKING: BankingInfo = {
-  bankName: "", accountName: "", accountNumber: "", swift: "", bankAddress: "", currency: "USD",
+  bankName:      "ACB – Asia Commercial Bank",
+  accountName:   "CTY TNHH HUNTER 3DVISUAL",
+  accountNumber: "41163457",
+  swift:         "ASCBVNVX",
+  bankAddress:   "442 Nguyen Thi Minh Khai Street, District 3, Ho Chi Minh City, Vietnam",
+  currency:      "USD",
 };
 
 function loadBanking(): BankingInfo {
@@ -102,16 +107,17 @@ const lineItemSchema = z.object({
 });
 
 const schema = z.object({
-  number:    z.string().min(1, "Required"),
-  clientId:  z.string().min(1, "Client is required"),
-  projectId: z.string().optional(),
-  dueDate:   z.string().min(1, "Required"),
-  currency:  z.string().default("USD"),
-  taxPct:    z.coerce.number().min(0).max(100).default(0),
-  discount:  z.coerce.number().min(0).default(0),
-  notes:     z.string().optional(),
-  terms:     z.string().optional(),
-  items:     z.array(lineItemSchema).min(1, "Add at least one line item"),
+  number:      z.string().min(1, "Required"),
+  contractRef: z.string().optional(),
+  clientId:    z.string().min(1, "Client is required"),
+  projectId:   z.string().optional(),
+  dueDate:     z.string().min(1, "Required"),
+  currency:    z.string().default("USD"),
+  taxPct:      z.coerce.number().min(0).max(100).default(0),
+  discount:    z.coerce.number().min(0).default(0),
+  notes:       z.string().optional(),
+  terms:       z.string().optional(),
+  items:       z.array(lineItemSchema).min(1, "Add at least one line item"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -151,19 +157,21 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
     resolver: zodResolver(schema),
     defaultValues: invoice
       ? {
-          number:    invoice.number,
-          clientId:  invoice.clientId,
-          projectId: invoice.projectId ?? undefined,
-          dueDate:   new Date(invoice.dueDate).toISOString().split("T")[0],
-          currency:  invoice.currency ?? "USD",
-          taxPct:    invoice.tax && invoice.subtotal > 0 ? Math.round((invoice.tax / invoice.subtotal) * 100) : 0,
-          discount:  invoice.discount ?? 0,
-          notes:     invoice.notes ?? "",
-          terms:     invoice.terms ?? "",
-          items:     existingItems,
+          number:      invoice.number,
+          contractRef: (invoice as any).contractRef ?? "",
+          clientId:    invoice.clientId,
+          projectId:   invoice.projectId ?? undefined,
+          dueDate:     new Date(invoice.dueDate).toISOString().split("T")[0],
+          currency:    invoice.currency ?? "USD",
+          taxPct:      invoice.tax && invoice.subtotal > 0 ? Math.round((invoice.tax / invoice.subtotal) * 100) : 0,
+          discount:    invoice.discount ?? 0,
+          notes:       invoice.notes ?? "",
+          terms:       invoice.terms ?? "",
+          items:       existingItems,
         }
       : {
           number: generateInvoiceNumber(),
+          contractRef: "",
           dueDate: defaultDueDate(),
           currency: "USD",
           taxPct: 0,
@@ -246,17 +254,18 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
       const terms = [values.terms, bankingText].filter(Boolean).join("\n\n");
 
       const payload = {
-        number:    values.number,
-        clientId:  values.clientId,
-        projectId: values.projectId || undefined,
-        dueDate:   new Date(values.dueDate),
-        subtotal:  +subtotal.toFixed(2),
-        tax:       taxAmount,
-        discount:  +discountAmt.toFixed(2),
-        total:     total,
-        currency:  values.currency || "USD",
-        notes:     values.notes || undefined,
-        terms:     terms || undefined,
+        number:      values.number,
+        contractRef: values.contractRef || undefined,
+        clientId:    values.clientId,
+        projectId:   values.projectId || undefined,
+        dueDate:     new Date(values.dueDate),
+        subtotal:    +subtotal.toFixed(2),
+        tax:         taxAmount,
+        discount:    +discountAmt.toFixed(2),
+        total:       total,
+        currency:    values.currency || "USD",
+        notes:       values.notes || undefined,
+        terms:       terms || undefined,
         items,
       };
 
@@ -287,13 +296,26 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 
-          {/* ── Row 1: Number + Currency + Due Date */}
-          <div className="grid grid-cols-3 gap-3">
+          {/* ── Row 1: Invoice # + Contract Ref */}
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="inv-num">Invoice #</Label>
               <Input id="inv-num" {...register("number")} placeholder="INV-2601-001" className="font-mono text-xs" />
               {errors.number && <p className="text-xs text-red-400">{errors.number.message}</p>}
             </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="inv-ref">
+                Contract Ref
+                <span className="ml-2 text-[10px] text-muted-foreground/60 font-normal normal-case">
+                  số hợp đồng · e.g. 0903/2026/HĐ-VS
+                </span>
+              </Label>
+              <Input id="inv-ref" {...register("contractRef")} placeholder="0903/2026/HĐ-DHKT/VS-INC" className="font-mono text-xs" />
+            </div>
+          </div>
+
+          {/* ── Row 2: Currency + Due Date */}
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="inv-cur">Currency</Label>
               <Controller name="currency" control={control} render={({ field }) => (

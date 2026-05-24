@@ -261,6 +261,7 @@ model Task {
 model Invoice {
   id          String        @id @default(cuid())
   number      String        @unique
+  contractRef String?
   clientId    String
   projectId   String?
   status      InvoiceStatus @default(DRAFT)
