@@ -86,21 +86,33 @@ src/
 - Actions: `updateProject`, `deleteProject`, `updateClient`, `deleteClient`
 - UX: hover → Pencil icon → prefilled edit modal; "New" button → create modal
 
-### Invoice System (session 2025-05-24)
+### Invoice System (fully dynamic as of 2026-05-25)
 - `InvoiceFormModal.tsx` — full create/edit with:
   - Quick-add category buttons (Exterior/Interior/360/Animation/3D Model)
   - Line items table (category + description + qty + unit price)
   - Tax % + Discount computation
   - Notes with preset templates (Revisions / Delivery / Payment)
   - Banking section — **2 sub-sections**: Receiving Bank + Account Holder
-- `contractRef` field added to Invoice model (optional VN contract number e.g. `0903/2026/HĐ-DHKT/VS-INC`)
-- Print page `/print/invoices/[id]`:
-  - Company logo (`/public/logo.png`) + CTY TNHH HUNTER 3DVISUAL header
-  - Drongo-style typography — section headers in `#E8521A`
-  - 2-column banking cards (Receiving Bank | Account Holder)
+- `contractRef` field on Invoice (optional VN contract number e.g. `0903/2026/HĐ-DHKT/VS-INC`)
+- Print page `/print/invoices/[id]` — **zero hardcoded values**:
+  - All style, spacing, colors, fonts driven 100% from `studio_settings` DB table
+  - Company info driven from DB settings (name, address, email, phone, website, footer)
+  - Banking: Receiving Bank on top, Account Holder below (vertical layout)
   - Backward-compatible parser (handles old single-block AND new 2-section format)
-  - `contractRef` shown in Invoice Details when filled
-- **Bug fixed:** banking info was duplicating on every re-save → fixed by stripping existing block before appending
+  - Logo position configurable (left/right), logo size default 74px
+  - `fontFamily` injected into `<style>` tag — body font fully configurable
+  - `lineHeight` and `borderRadius` applied globally
+
+### Settings System (fully wired 2026-05-25)
+- `StudioSetting` model in DB — key/value store for `company`, `invoice_style`, `banking`
+- Settings page `/dashboard/settings` — 3 tabs: Company Info / Invoice Style / Banking Defaults
+- **Invoice Style tab** — 4 collapsible sections:
+  - **Colors**: brand, text (primary/secondary/muted), surfaces (border, rowAlt, tableHeader, notes, banking cards), Total Due box (bg, label text, amount)
+  - **Logo**: height (px) + position (left/right toggle)
+  - **Typography**: font family select (Inter/Helvetica/Georgia/System), INVOICE title, section headers, company name/detail, invoice number, status badge, row labels/values, client name/detail, table header/rows, totals, notes, banking rows, footer
+  - **Spacing & Layout**: page padding V/H, section gap, table row padding V/H, line height, border radius
+- All settings persist to DB via `saveInvoiceStyleSettings()` server action
+- Settings read by print page via `getAllSettings()` on every request
 
 ### Documents
 - `/dashboard/documents` — HĐ / BBTLHD / Invoice document system
@@ -180,5 +192,8 @@ RESEND_API_KEY
 - **Invoice number format:** `INV-YYYYMM-NNN` (auto-generated)
 - **Contract ref format:** `0903/2026/HĐ-DHKT/VS-INC` (optional, manual entry)
 - **`(invoice as any).contractRef`** — needed until Prisma Client fully regenerates in IDE cache
-- **Banking serialization:** terms field stores banking as structured text block starting with `─── Banking / Payment Details ───`. Two sub-sections `[Receiving Bank]` and `[Account Holder]`. Print page parser handles both old (single-section) and new (two-section) format.
+- **Banking serialization:** `terms` field stores banking as structured text block starting with `─── Banking / Payment Details ───`. Two sub-sections `[Receiving Bank]` and `[Account Holder]`. Print page parser handles both old (single-section) and new (two-section) format.
 - **Print page** is a pure server component — no client JS, safe for PDF via browser print
+- **Settings fallback:** `getSetting()` merges DB value with `DEFAULT_STYLE` — new fields added to type automatically get their defaults for existing users without migration
+- **InvoiceStyle type** (`src/types/settings.ts`) has ~35 fields. DEFAULT_STYLE in `src/actions/settings.ts` is the single source of truth for defaults. When adding new style fields, add to both type AND DEFAULT_STYLE.
+- **Banking defaults** also synced to `localStorage` key `h3dv_banking_defaults` when saved — so InvoiceFormModal picks them up client-side
