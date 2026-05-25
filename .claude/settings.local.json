@@ -64,7 +64,8 @@
       "Bash(pm2 save *)",
       "Bash(for f in tasks team finance pipeline automation; do *)",
       "Bash(git push *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npx next *)"
     ]
   }
 }

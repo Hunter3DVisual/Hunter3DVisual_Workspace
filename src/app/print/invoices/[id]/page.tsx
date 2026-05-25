@@ -1,83 +1,8 @@
 import { notFound } from "next/navigation";
 import { getInvoiceById } from "@/actions/finance";
+import { getAllSettings } from "@/actions/settings";
 import { PrintActions } from "@/app/print/invoices/PrintActions";
 import type { InvoiceLineItem } from "@/types/finance";
-
-interface Props {
-  params: Promise<{ id: string }>;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ✏️  COMPANY INFO — chỉnh sửa tại đây
-// ─────────────────────────────────────────────────────────────────────────────
-const COMPANY = {
-  name:    "CTY TNHH HUNTER 3DVISUAL",
-  line1:   "196 Trương Xuân Nam, Phường Ngũ Hành Sơn",
-  line2:   "Đà Nẵng, Vietnam",
-  phone:   "+84 979 592 543",
-  email:   "hunterluu.47th@gmail.com",
-  website: "hunter3dvisual.com",
-  footer:  "Thank you for your business.",
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// 🎨  STYLE CONFIG — chỉnh font, màu, kích thước tại đây
-// ─────────────────────────────────────────────────────────────────────────────
-const S = {
-  // ── Colors ──────────────────────────────────────────────────────────────
-  brand:           "#E8521A",   // màu cam chính — INVOICE title, section headers
-  textPrimary:     "#111111",   // chữ chính
-  textSecondary:   "#374151",   // chữ phụ (địa chỉ client, table text)
-  textMuted:       "#6b7280",   // label mờ (Issue Date, Due Date...)
-  textCompany:     "#4b5563",   // thông tin công ty bên header
-  border:          "#e5e7eb",   // viền bảng, card
-  rowAlt:          "#fafafa",   // màu nền row lẻ trong bảng
-  tableHeaderBg:   "#f9fafb",   // nền header bảng
-  bankingCardBg:   "#f9fafb",   // nền card banking
-  totalDueBg:      "#0a0a0a",   // nền TOTAL DUE
-  totalDueLabel:   "#e5e7eb",   // chữ "TOTAL DUE"
-  totalDueAmount:  "#E8521A",   // số tiền trong TOTAL DUE
-  notesBg:         "#f9fafb",   // nền ô notes
-  divider:         "linear-gradient(90deg, #E8521A, #f97316, transparent)",
-
-  // ── Logo ────────────────────────────────────────────────────────────────
-  logoHeight:      62,          // px — tăng/giảm để thay đổi kích thước logo
-
-  // ── Typography — font sizes (px) ────────────────────────────────────────
-  fontInvoiceTitle:   32,       // "INVOICE" chữ lớn góc phải
-  fontInvoiceNumber:  14,       // INV-XXXX-XXX
-  fontStatusBadge:    11,       // badge PAID / SENT / DRAFT...
-
-  fontCompanyName:    14,       // "CTY TNHH HUNTER 3DVISUAL"
-  fontCompanyDetail:  11,       // địa chỉ, phone, email bên header
-
-  fontSectionHeader:  13,       // "Invoice Details", "Bill To", "Banking..."
-  fontLabel:          13,       // "Issue Date", "Due Date"... (cột trái)
-  fontValue:          13,       // giá trị tương ứng (cột phải)
-
-  fontClientName:     15,       // tên khách hàng trong Bill To
-  fontClientDetail:   13,       // công ty, project
-
-  fontTableHeader:    10,       // SERVICE / DESCRIPTION / QTY...
-  fontTableRow:       13,       // nội dung từng dòng bảng
-
-  fontTotalLabel:     13,       // "Subtotal", "Tax", "Discount"
-  fontTotalValue:     13,       // giá trị subtotal/tax
-  fontTotalDueLabel:  13,       // chữ "TOTAL DUE"
-  fontTotalDueAmount: 20,       // số tiền final
-
-  fontNotes:          12,       // nội dung notes
-  fontBankingHeader:  10,       // "RECEIVING BANK", "ACCOUNT HOLDER"
-  fontBankingLabel:   12,       // "Bank", "Account No"...
-  fontBankingValue:   12,       // giá trị banking
-
-  fontFooter:         11,       // dòng footer
-
-  // ── Spacing ─────────────────────────────────────────────────────────────
-  pagePaddingV:       48,       // padding dọc trang
-  pagePaddingH:       56,       // padding ngang trang
-  sectionGap:         36,       // khoảng cách giữa các section
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Không cần chỉnh bên dưới trừ khi muốn thay đổi layout/logic
@@ -162,10 +87,44 @@ function parseBankingFromTerms(terms: string | null): BankingParsed {
   return { receivingBank: parseKV(receivingBank), accountHolder: parseKV(accountHolder), other: before };
 }
 
+interface Props {
+  params: Promise<{ id: string }>;
+}
+
 export default async function InvoicePrintPage({ params }: Props) {
   const { id } = await params;
-  const invoice = await getInvoiceById(id);
+  const [invoice, { company: COMPANY, style }] = await Promise.all([
+    getInvoiceById(id),
+    getAllSettings(),
+  ]);
   if (!invoice) notFound();
+
+  // Build S from DB settings + fixed non-configurable values
+  const S = {
+    ...style,
+    textCompany:    "#4b5563",
+    border:         "#e5e7eb",
+    rowAlt:         "#fafafa",
+    tableHeaderBg:  "#f9fafb",
+    bankingCardBg:  "#f9fafb",
+    totalDueLabel:  "#e5e7eb",
+    notesBg:        "#f9fafb",
+    divider:        `linear-gradient(90deg, ${style.brand}, #f97316, transparent)`,
+    fontInvoiceNumber:  14,
+    fontStatusBadge:    11,
+    fontClientName:     15,
+    fontClientDetail:   13,
+    fontTableHeader:    10,
+    fontTotalLabel:     13,
+    fontNotes:          12,
+    fontBankingHeader:  10,
+    fontBankingLabel:   12,
+    fontBankingValue:   12,
+    fontFooter:         11,
+    pagePaddingV:       48,
+    pagePaddingH:       56,
+    sectionGap:         36,
+  };
 
   const items = (invoice.items as InvoiceLineItem[]) ?? [];
   const { receivingBank, accountHolder, other: paymentTerms } = parseBankingFromTerms(invoice.terms);

@@ -483,3 +483,13 @@ model Document {
 
   @@map("documents")
 }
+
+// Studio-wide settings (company info, invoice style, banking defaults)
+// key = "company" | "invoice_style" | "banking" — value = JSON string
+model StudioSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+
+  @@map("studio_settings")
+}
