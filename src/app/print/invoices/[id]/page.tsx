@@ -565,15 +565,14 @@ export default async function InvoicePrintPage({ params }: Props) {
                         paddingBottom:       style.bankingRowGap,
                         borderBottom:        isLast ? "none" : "1px solid rgba(0,0,0,0.05)",
                       }}>
-                        {/* Label — right-aligned so all labels end at the same x */}
+                        {/* Label — left-aligned; colon column stays fixed */}
                         <span style={{
-                          fontSize:     style.fontBankingLabel,
-                          fontWeight:   style.fontWeightBankingLabel,
-                          fontStyle:    style.fontStyleBankingLabel,
-                          color:        style.colorBankingLabel,
-                          textAlign:    "right",
-                          whiteSpace:   "nowrap",
-                          paddingRight: 2,
+                          fontSize:   style.fontBankingLabel,
+                          fontWeight: style.fontWeightBankingLabel,
+                          fontStyle:  style.fontStyleBankingLabel,
+                          color:      style.colorBankingLabel,
+                          textAlign:  "left",
+                          whiteSpace: "nowrap",
                         }}>
                           {key}
                         </span>
