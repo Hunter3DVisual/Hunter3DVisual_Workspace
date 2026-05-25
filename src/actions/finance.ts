@@ -134,18 +134,18 @@ export async function updateInvoice(id: string, input: CreateInvoiceInput) {
     where: { id },
     data: {
       // number is intentionally omitted — invoice numbers never change after creation
-      contractRef:  contractRef  || undefined,
+      contractRef:  contractRef  ?? undefined,   // null clears, undefined = skip
       clientId,
-      projectId:    projectId    || undefined,
+      projectId:    projectId    ?? undefined,   // null clears project link
       dueDate:      new Date(dueDate),
       subtotal,
       tax:          tax          ?? 0,
       discount:     discount     ?? 0,
       total,
       currency:     currency     || "USD",
-      notes:        notes        || undefined,
-      terms:        terms        || undefined,
-      items,
+      notes:        notes        ?? undefined,   // null clears notes
+      terms:        terms        ?? undefined,   // null clears terms
+      items:        items as any,                // Json field — Prisma accepts any JSON-serializable value
     },
   });
 }

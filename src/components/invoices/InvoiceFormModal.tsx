@@ -285,6 +285,13 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
         total:       +(it.quantity * it.unitPrice).toFixed(2),
       }));
 
+      // Use validated (Zod-coerced) numbers from `values` — NOT the raw `watch()` values
+      // which return HTML strings after the user types and cause `.toFixed()` to throw.
+      const calcSubtotal  = +items.reduce((s, it) => s + it.total, 0).toFixed(2);
+      const calcTax       = +(calcSubtotal * ((values.taxPct ?? 0) / 100)).toFixed(2);
+      const calcDiscount  = +(values.discount ?? 0);
+      const calcTotal     = Math.max(0, +(calcSubtotal + calcTax - calcDiscount).toFixed(2));
+
       // Strip any existing banking block before appending (prevents duplicates on re-save)
       const cleanTerms = ((values.terms ?? "").split(BANKING_SEP)[0]).trim();
       const bankingText = banking.accountNumber ? serializeBanking(banking) : "";
@@ -297,10 +304,10 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
         clientId:    values.clientId,
         projectId:   values.projectId || null,
         dueDate:     values.dueDate,        // ISO string "YYYY-MM-DD"
-        subtotal:    +subtotal.toFixed(2),
-        tax:         taxAmount,
-        discount:    +discountAmt.toFixed(2),
-        total:       total,
+        subtotal:    calcSubtotal,
+        tax:         calcTax,
+        discount:    calcDiscount,
+        total:       calcTotal,
         currency:    values.currency || "USD",
         notes:       values.notes || null,
         terms:       terms || null,
