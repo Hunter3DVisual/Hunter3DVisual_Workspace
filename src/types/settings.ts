@@ -94,10 +94,11 @@ export type InvoiceStyle = {
   fontStyleBankingValue:        string;
 
   // ── Banking spacing ────────────────────────────────────────────────────────
-  bankingRowGap:   number;   // gap between label-value rows
-  bankingCardPadV: number;   // vertical padding inside each card
-  bankingCardPadH: number;   // horizontal padding inside each card
-  bankingCardGap:  number;   // gap between Receiving Bank card and Account Holder card
+  bankingLabelWidth: number; // fixed width of the label column (px)
+  bankingRowGap:     number; // vertical padding per row (each side, in px)
+  bankingCardPadV:   number; // vertical padding inside each card
+  bankingCardPadH:   number; // horizontal padding inside each card
+  bankingCardGap:    number; // gap between Receiving Bank card and Account Holder card
 
   // ── Global spacing & layout ───────────────────────────────────────────────
   pagePaddingV:      number;

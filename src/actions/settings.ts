@@ -102,10 +102,11 @@ const DEFAULT_STYLE: InvoiceStyle = {
   fontStyleBankingValue:         "normal",
 
   // Banking spacing
-  bankingRowGap:   6,
-  bankingCardPadV: 14,
-  bankingCardPadH: 18,
-  bankingCardGap:  10,
+  bankingLabelWidth: 160,
+  bankingRowGap:     7,
+  bankingCardPadV:   16,
+  bankingCardPadH:   20,
+  bankingCardGap:    12,
 
   // Global spacing
   pagePaddingV:     48,

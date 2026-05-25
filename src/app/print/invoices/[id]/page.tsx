@@ -460,95 +460,74 @@ export default async function InvoicePrintPage({ params }: Props) {
               Banking / Payment Details
             </div>
 
-            {/* Receiving Bank */}
-            {receivingBank.length > 0 && (
-              <div style={{
-                background:   style.bankingCardBg,
-                borderRadius: r,
-                padding:      `${style.bankingCardPadV}px ${style.bankingCardPadH}px`,
-                border:       `1px solid ${style.borderColor}`,
-                marginBottom: style.bankingCardGap,
-              }}>
-                <div style={{
-                  fontSize:      style.fontBankingHeader,
-                  fontWeight:    style.fontWeightBankingSectionTitle,
-                  color:         style.colorBankingSectionTitle,
-                  letterSpacing: "0.07em",
-                  textTransform: "uppercase",
-                  marginBottom:  10,
+            {/* ── Banking card — shared row renderer ──────────────────── */}
+            {([
+              { title: "Receiving Bank",  rows: receivingBank,  last: accountHolder.length === 0 },
+              { title: "Account Holder",  rows: accountHolder,  last: true },
+            ] as { title: string; rows: { key: string; val: string }[]; last: boolean }[])
+              .filter(({ rows }) => rows.length > 0)
+              .map(({ title, rows, last }) => (
+                <div key={title} style={{
+                  background:   style.bankingCardBg,
+                  borderRadius: r,
+                  padding:      `${style.bankingCardPadV}px ${style.bankingCardPadH}px`,
+                  border:       `1px solid ${style.borderColor}`,
+                  marginBottom: last ? 0 : style.bankingCardGap,
                 }}>
-                  Receiving Bank
-                </div>
-                {receivingBank.map(({ key, val }, i) => (
-                  <div key={i} style={{
-                    display:        "flex",
-                    justifyContent: "space-between",
-                    marginBottom:   style.bankingRowGap,
-                    gap:            24,
+                  {/* Section title + underline */}
+                  <div style={{
+                    fontSize:      style.fontBankingHeader,
+                    fontWeight:    style.fontWeightBankingSectionTitle,
+                    color:         style.colorBankingSectionTitle,
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    paddingBottom: 8,
+                    marginBottom:  4,
+                    borderBottom:  `1px solid ${style.borderColor}`,
                   }}>
-                    <span style={{
-                      fontSize:   style.fontBankingLabel,
-                      fontWeight: style.fontWeightBankingLabel,
-                      fontStyle:  style.fontStyleBankingLabel,
-                      color:      style.colorBankingLabel,
-                      whiteSpace: "nowrap",
-                    }}>{key}</span>
-                    <span style={{
-                      fontSize:   style.fontBankingValue,
-                      fontWeight: style.fontWeightBankingValue,
-                      fontStyle:  style.fontStyleBankingValue,
-                      color:      style.colorBankingValue,
-                      textAlign:  "right",
-                    }}>{val}</span>
+                    {title}
                   </div>
-                ))}
-              </div>
-            )}
 
-            {/* Account Holder */}
-            {accountHolder.length > 0 && (
-              <div style={{
-                background:   style.bankingCardBg,
-                borderRadius: r,
-                padding:      `${style.bankingCardPadV}px ${style.bankingCardPadH}px`,
-                border:       `1px solid ${style.borderColor}`,
-              }}>
-                <div style={{
-                  fontSize:      style.fontBankingHeader,
-                  fontWeight:    style.fontWeightBankingSectionTitle,
-                  color:         style.colorBankingSectionTitle,
-                  letterSpacing: "0.07em",
-                  textTransform: "uppercase",
-                  marginBottom:  10,
-                }}>
-                  Account Holder
+                  {/* Rows — fixed label column + value column */}
+                  {rows.map(({ key, val }, i) => {
+                    const isLast = i === rows.length - 1;
+                    const isMono = key.includes("Account") || key.includes("SWIFT") || key.includes("No");
+                    return (
+                      <div key={i} style={{
+                        display:             "grid",
+                        gridTemplateColumns: `${style.bankingLabelWidth}px 1fr`,
+                        alignItems:          "baseline",
+                        paddingTop:          style.bankingRowGap,
+                        paddingBottom:       style.bankingRowGap,
+                        borderBottom:        isLast ? "none" : "1px solid rgba(0,0,0,0.05)",
+                      }}>
+                        {/* Label — fixed width, colon-terminated */}
+                        <span style={{
+                          fontSize:   style.fontBankingLabel,
+                          fontWeight: style.fontWeightBankingLabel,
+                          fontStyle:  style.fontStyleBankingLabel,
+                          color:      style.colorBankingLabel,
+                          whiteSpace: "nowrap",
+                        }}>
+                          {key}:
+                        </span>
+
+                        {/* Value — always starts at the same x position */}
+                        <span style={{
+                          fontSize:   style.fontBankingValue,
+                          fontWeight: style.fontWeightBankingValue,
+                          fontStyle:  style.fontStyleBankingValue,
+                          color:      style.colorBankingValue,
+                          fontFamily: isMono ? "monospace" : "inherit",
+                        }}>
+                          {val}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                {accountHolder.map(({ key, val }, i) => (
-                  <div key={i} style={{
-                    display:        "flex",
-                    justifyContent: "space-between",
-                    marginBottom:   style.bankingRowGap,
-                    gap:            24,
-                  }}>
-                    <span style={{
-                      fontSize:   style.fontBankingLabel,
-                      fontWeight: style.fontWeightBankingLabel,
-                      fontStyle:  style.fontStyleBankingLabel,
-                      color:      style.colorBankingLabel,
-                      whiteSpace: "nowrap",
-                    }}>{key}</span>
-                    <span style={{
-                      fontSize:    style.fontBankingValue,
-                      fontWeight:  style.fontWeightBankingValue,
-                      fontStyle:   style.fontStyleBankingValue,
-                      color:       style.colorBankingValue,
-                      textAlign:   "right",
-                      fontFamily:  key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit",
-                    }}>{val}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+              ))
+            }
           </div>
         )}
 

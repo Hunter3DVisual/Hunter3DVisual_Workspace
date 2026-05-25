@@ -579,12 +579,13 @@ function StyleTab({ initial }: { initial: InvoiceStyle }) {
         </div>
 
         <div>
-          <p className="text-xs text-muted-foreground mb-3">Spacing</p>
+          <p className="text-xs text-muted-foreground mb-3">Spacing &amp; alignment</p>
           <div className="grid grid-cols-2 gap-3">
-            <NumField label="Row gap (px)"         hint="between label-value rows"           value={v.bankingRowGap}   onChange={set("bankingRowGap")}   min={0} max={32} />
-            <NumField label="Card gap (px)"         hint="between Receiving Bank &amp; Holder" value={v.bankingCardGap}  onChange={set("bankingCardGap")}  min={0} max={40} />
-            <NumField label="Card padding V (px)"  value={v.bankingCardPadV} onChange={set("bankingCardPadV")} min={4} max={40} />
-            <NumField label="Card padding H (px)"  value={v.bankingCardPadH} onChange={set("bankingCardPadH")} min={4} max={40} />
+            <NumField label="Label column width (px)" hint="fixed left column"               value={v.bankingLabelWidth} onChange={set("bankingLabelWidth")} min={80}  max={280} />
+            <NumField label="Row padding (px)"         hint="top &amp; bottom per row"        value={v.bankingRowGap}    onChange={set("bankingRowGap")}    min={2}   max={24}  />
+            <NumField label="Card gap (px)"             hint="between Receiving / Holder"     value={v.bankingCardGap}   onChange={set("bankingCardGap")}   min={0}   max={40}  />
+            <NumField label="Card padding V (px)"      value={v.bankingCardPadV} onChange={set("bankingCardPadV")} min={4} max={40} />
+            <NumField label="Card padding H (px)"      value={v.bankingCardPadH} onChange={set("bankingCardPadH")} min={4} max={40} />
           </div>
         </div>
       </Accordion>
