@@ -130,28 +130,46 @@ export async function updateInvoiceStatus(id: string, status: string) {
   });
 }
 
-export async function updateInvoice(id: string, input: CreateInvoiceInput) {
+export async function updateInvoice(
+  id: string,
+  input: CreateInvoiceInput
+): Promise<{ ok: true } | { ok: false; error: string }> {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return { ok: false, error: "Unauthorized" };
 
-  const { contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
+  const {
+    contractRef, clientId, projectId, dueDate,
+    subtotal, tax, discount, total, currency,
+    notes, terms, items,
+  } = input;
 
-  return db.invoice.update({
-    where: { id },
-    data: {
-      // number is intentionally omitted — invoice numbers never change after creation
-      contractRef:  contractRef  ?? undefined,   // null clears, undefined = skip
-      clientId,
-      projectId:    projectId    ?? undefined,   // null clears project link
-      dueDate:      new Date(dueDate),
-      subtotal,
-      tax:          tax          ?? 0,
-      discount:     discount     ?? 0,
-      total,
-      currency:     currency     || "USD",
-      notes:        notes        ?? undefined,   // null clears notes
-      terms:        terms        ?? undefined,   // null clears terms
-      items:        items as any,                // Json field — Prisma accepts any JSON-serializable value
-    },
-  });
+  try {
+    await db.invoice.update({
+      where: { id },
+      data: {
+        // number is intentionally omitted — invoice numbers never change after creation
+        contractRef: contractRef ?? undefined,  // null clears, undefined = skip
+        clientId,
+        projectId:   projectId  ?? undefined,  // null clears project link
+        dueDate:     new Date(dueDate),
+        subtotal,
+        tax:         tax        ?? 0,
+        discount:    discount   ?? 0,
+        total,
+        currency:    currency   || "USD",
+        notes:       notes      ?? undefined,  // null clears notes
+        terms:       terms      ?? undefined,  // null clears terms
+        items:       items as any,
+      },
+    });
+    return { ok: true };
+  } catch (e: any) {
+    // Return real error details instead of throwing — bypasses Next.js production sanitization
+    const detail = [e?.code, e?.meta?.target, e?.message]
+      .filter(Boolean)
+      .join(" | ")
+      .slice(0, 400);
+    console.error("[updateInvoice] Prisma error:", e?.code, e?.message);
+    return { ok: false, error: detail };
+  }
 }
