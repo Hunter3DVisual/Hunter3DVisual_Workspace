@@ -7,6 +7,82 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// ✏️  COMPANY INFO — chỉnh sửa tại đây
+// ─────────────────────────────────────────────────────────────────────────────
+const COMPANY = {
+  name:    "CTY TNHH HUNTER 3DVISUAL",
+  line1:   "196 Trương Xuân Nam, Phường Ngũ Hành Sơn",
+  line2:   "Đà Nẵng, Vietnam",
+  phone:   "+84 979 592 543",
+  email:   "hunterluu.47th@gmail.com",
+  website: "hunter3dvisual.com",
+  footer:  "Thank you for your business.",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 🎨  STYLE CONFIG — chỉnh font, màu, kích thước tại đây
+// ─────────────────────────────────────────────────────────────────────────────
+const S = {
+  // ── Colors ──────────────────────────────────────────────────────────────
+  brand:           "#E8521A",   // màu cam chính — INVOICE title, section headers
+  textPrimary:     "#111111",   // chữ chính
+  textSecondary:   "#374151",   // chữ phụ (địa chỉ client, table text)
+  textMuted:       "#6b7280",   // label mờ (Issue Date, Due Date...)
+  textCompany:     "#4b5563",   // thông tin công ty bên header
+  border:          "#e5e7eb",   // viền bảng, card
+  rowAlt:          "#fafafa",   // màu nền row lẻ trong bảng
+  tableHeaderBg:   "#f9fafb",   // nền header bảng
+  bankingCardBg:   "#f9fafb",   // nền card banking
+  totalDueBg:      "#0a0a0a",   // nền TOTAL DUE
+  totalDueLabel:   "#e5e7eb",   // chữ "TOTAL DUE"
+  totalDueAmount:  "#E8521A",   // số tiền trong TOTAL DUE
+  notesBg:         "#f9fafb",   // nền ô notes
+  divider:         "linear-gradient(90deg, #E8521A, #f97316, transparent)",
+
+  // ── Logo ────────────────────────────────────────────────────────────────
+  logoHeight:      62,          // px — tăng/giảm để thay đổi kích thước logo
+
+  // ── Typography — font sizes (px) ────────────────────────────────────────
+  fontInvoiceTitle:   32,       // "INVOICE" chữ lớn góc phải
+  fontInvoiceNumber:  14,       // INV-XXXX-XXX
+  fontStatusBadge:    11,       // badge PAID / SENT / DRAFT...
+
+  fontCompanyName:    14,       // "CTY TNHH HUNTER 3DVISUAL"
+  fontCompanyDetail:  11,       // địa chỉ, phone, email bên header
+
+  fontSectionHeader:  13,       // "Invoice Details", "Bill To", "Banking..."
+  fontLabel:          13,       // "Issue Date", "Due Date"... (cột trái)
+  fontValue:          13,       // giá trị tương ứng (cột phải)
+
+  fontClientName:     15,       // tên khách hàng trong Bill To
+  fontClientDetail:   13,       // công ty, project
+
+  fontTableHeader:    10,       // SERVICE / DESCRIPTION / QTY...
+  fontTableRow:       13,       // nội dung từng dòng bảng
+
+  fontTotalLabel:     13,       // "Subtotal", "Tax", "Discount"
+  fontTotalValue:     13,       // giá trị subtotal/tax
+  fontTotalDueLabel:  13,       // chữ "TOTAL DUE"
+  fontTotalDueAmount: 20,       // số tiền final
+
+  fontNotes:          12,       // nội dung notes
+  fontBankingHeader:  10,       // "RECEIVING BANK", "ACCOUNT HOLDER"
+  fontBankingLabel:   12,       // "Bank", "Account No"...
+  fontBankingValue:   12,       // giá trị banking
+
+  fontFooter:         11,       // dòng footer
+
+  // ── Spacing ─────────────────────────────────────────────────────────────
+  pagePaddingV:       48,       // padding dọc trang
+  pagePaddingH:       56,       // padding ngang trang
+  sectionGap:         36,       // khoảng cách giữa các section
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Không cần chỉnh bên dưới trừ khi muốn thay đổi layout/logic
+// ─────────────────────────────────────────────────────────────────────────────
+
 const CAT_LABEL: Record<string, string> = {
   EXTERIOR:  "Exterior Render",
   INTERIOR:  "Interior Render",
@@ -79,8 +155,8 @@ function parseBankingFromTerms(terms: string | null): BankingParsed {
   const accountHolder: string[] = [];
   let cur: string[] = [];
   for (const line of lines) {
-    if (line === "[Receiving Bank]")  { cur = receivingBank; continue; }
-    if (line === "[Account Holder]")  { cur = accountHolder; continue; }
+    if (line === "[Receiving Bank]") { cur = receivingBank; continue; }
+    if (line === "[Account Holder]") { cur = accountHolder; continue; }
     cur.push(line);
   }
   return { receivingBank: parseKV(receivingBank), accountHolder: parseKV(accountHolder), other: before };
@@ -103,83 +179,96 @@ export default async function InvoicePrintPage({ params }: Props) {
         @page { size: A4; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        @media print {
-          .no-print { display: none !important; }
-          body { margin: 0; }
-        }
+        @media print { .no-print { display: none !important; } body { margin: 0; } }
       `}</style>
 
       <PrintActions />
 
-      <div style={{ maxWidth: 794, margin: "0 auto", padding: "48px 56px", minHeight: "100vh", background: "#fff" }}>
+      <div style={{ maxWidth: 794, margin: "0 auto", padding: `${S.pagePaddingV}px ${S.pagePaddingH}px`, minHeight: "100vh", background: "#fff" }}>
 
-        {/* ── Header ──────────────────────────────────────────────── */}
+        {/* ── Header ───────────────────────────────────────────────────── */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 40 }}>
-          {/* Company info */}
+
+          {/* LEFT: Logo + Company Info */}
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Hunter3DVisual" style={{ height: 52, width: "auto", marginBottom: 10, display: "block" }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#111", letterSpacing: "0.01em" }}>CTY TNHH HUNTER 3DVISUAL</div>
-            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>196 Trương Xuân Nam, Phường Ngũ Hành Sơn</div>
-            <div style={{ fontSize: 11, color: "#4b5563" }}>Đà Nẵng, Vietnam</div>
-            <div style={{ fontSize: 11, color: "#4b5563", marginTop: 3 }}>+84 979 592 543</div>
-            <div style={{ fontSize: 11, color: "#4b5563" }}>hunterluu.47th@gmail.com · hunter3dvisual.com</div>
+            <img src="/logo.png" alt="Hunter3DVisual"
+              style={{ height: S.logoHeight, width: "auto", marginBottom: 12, display: "block" }} />
+            <div style={{ fontSize: S.fontCompanyName, fontWeight: 700, color: S.textPrimary, letterSpacing: "0.01em" }}>
+              {COMPANY.name}
+            </div>
+            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany, marginTop: 4 }}>{COMPANY.line1}</div>
+            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany }}>{COMPANY.line2}</div>
+            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany, marginTop: 4 }}>{COMPANY.phone}</div>
+            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany }}>{COMPANY.email} · {COMPANY.website}</div>
           </div>
 
-          {/* Invoice label + number + status */}
+          {/* RIGHT: INVOICE + number + status */}
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 32, fontWeight: 800, color: "#E8521A", letterSpacing: "-1px", lineHeight: 1 }}>
+            <div style={{ fontSize: S.fontInvoiceTitle, fontWeight: 800, color: S.brand, letterSpacing: "-1px", lineHeight: 1 }}>
               INVOICE
             </div>
-            <div style={{ fontFamily: "monospace", fontSize: 14, color: "#111", marginTop: 6, fontWeight: 700 }}>
+            <div style={{ fontFamily: "monospace", fontSize: S.fontInvoiceNumber, color: S.textPrimary, marginTop: 6, fontWeight: 700 }}>
               {invoice.number}
             </div>
             {(invoice as any).contractRef && (
-              <div style={{ fontFamily: "monospace", fontSize: 11, color: "#6b7280", marginTop: 3 }}>
+              <div style={{ fontFamily: "monospace", fontSize: 11, color: S.textMuted, marginTop: 3 }}>
                 {(invoice as any).contractRef}
               </div>
             )}
             <div style={{
-              display: "inline-block", marginTop: 6,
+              display: "inline-block", marginTop: 8,
               background: statusColor + "20", color: statusColor,
               border: `1px solid ${statusColor}40`,
-              borderRadius: 6, padding: "2px 10px", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+              borderRadius: 6, padding: "3px 12px",
+              fontSize: S.fontStatusBadge, fontWeight: 700, letterSpacing: "0.06em",
             }}>
               {invoice.status}
             </div>
           </div>
         </div>
 
-        {/* ── Divider */}
-        <div style={{ height: 2, background: "linear-gradient(90deg, #E8521A, #f97316, transparent)", marginBottom: 32, borderRadius: 1 }} />
+        {/* ── Divider ──────────────────────────────────────────────────── */}
+        <div style={{ height: 2, background: S.divider, marginBottom: 32, borderRadius: 1 }} />
 
-        {/* ── Invoice Meta + Bill To ───────────────────────────── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: 36 }}>
-          {/* Dates */}
+        {/* ── Invoice Details + Bill To ─────────────────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: S.sectionGap }}>
+
+          {/* Invoice Details */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 10 }}>Invoice Details</div>
+            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 12 }}>
+              Invoice Details
+            </div>
             {[
-              ["Issue Date", fmtDate(invoice.issueDate)],
-              ["Due Date",   fmtDate(invoice.dueDate)],
-              ["Currency",   currency],
+              ["Issue Date",    fmtDate(invoice.issueDate)],
+              ["Due Date",      fmtDate(invoice.dueDate)],
+              ["Currency",      currency],
               ...((invoice as any).contractRef ? [["Contract Ref", (invoice as any).contractRef]] : []),
             ].map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 6, gap: 16 }}>
-                <span style={{ color: "#6b7280" }}>{label}</span>
-                <span style={{ fontWeight: 600, color: "#111", fontFamily: label === "Contract Ref" ? "monospace" : "inherit", textAlign: "right" }}>{value}</span>
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontLabel, marginBottom: 7, gap: 16 }}>
+                <span style={{ color: S.textMuted }}>{label}</span>
+                <span style={{ fontWeight: 600, color: S.textPrimary, fontFamily: label === "Contract Ref" ? "monospace" : "inherit", textAlign: "right" }}>
+                  {value}
+                </span>
               </div>
             ))}
           </div>
 
           {/* Bill To */}
           <div>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 10 }}>Bill To</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#111", marginBottom: 3 }}>{invoice.client.name}</div>
+            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 12 }}>
+              Bill To
+            </div>
+            <div style={{ fontSize: S.fontClientName, fontWeight: 700, color: S.textPrimary, marginBottom: 4 }}>
+              {invoice.client.name}
+            </div>
             {invoice.client.company && (
-              <div style={{ fontSize: 13, color: "#374151", marginBottom: 2 }}>{invoice.client.company}</div>
+              <div style={{ fontSize: S.fontClientDetail, color: S.textSecondary, marginBottom: 2 }}>
+                {invoice.client.company}
+              </div>
             )}
             {invoice.project && (
-              <div style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
+              <div style={{ fontSize: 12, color: S.textMuted, marginTop: 6 }}>
                 <span style={{ fontFamily: "monospace", marginRight: 6, color: "#9ca3af" }}>{invoice.project.code}</span>
                 {invoice.project.name}
               </div>
@@ -187,15 +276,18 @@ export default async function InvoicePrintPage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Line Items ─────────────────────────────────────────── */}
+        {/* ── Line Items ───────────────────────────────────────────────── */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
           <thead>
-            <tr style={{ background: "#f9fafb", borderBottom: "2px solid #e5e7eb" }}>
-              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Service</th>
-              <th style={{ textAlign: "left", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Description</th>
-              <th style={{ textAlign: "center", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Qty</th>
-              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Unit Price</th>
-              <th style={{ textAlign: "right", padding: "10px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "#4b5563", textTransform: "uppercase" }}>Total</th>
+            <tr style={{ background: S.tableHeaderBg, borderBottom: `2px solid ${S.border}` }}>
+              {(["Service", "Description", "Qty", "Unit Price", "Total"] as const).map((col, i) => (
+                <th key={col} style={{
+                  textAlign: i === 0 || i === 1 ? "left" : i === 2 ? "center" : "right",
+                  padding: "10px 12px",
+                  fontSize: S.fontTableHeader, fontWeight: 700,
+                  letterSpacing: "0.06em", color: S.textSecondary, textTransform: "uppercase",
+                }}>{col}</th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -203,7 +295,7 @@ export default async function InvoicePrintPage({ params }: Props) {
               const catColor = item.category ? CAT_COLOR[item.category] : "#6b7280";
               const catLabel = item.category ? CAT_LABEL[item.category] : "";
               return (
-                <tr key={i} style={{ borderBottom: "1px solid #f3f4f6", background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+                <tr key={i} style={{ borderBottom: `1px solid #f3f4f6`, background: i % 2 === 0 ? "#fff" : S.rowAlt }}>
                   <td style={{ padding: "12px 12px" }}>
                     {catLabel && (
                       <span style={{
@@ -212,21 +304,19 @@ export default async function InvoicePrintPage({ params }: Props) {
                         border: `1px solid ${catColor}40`,
                         borderRadius: 4, padding: "2px 7px",
                         fontSize: 10, fontWeight: 600, whiteSpace: "nowrap",
-                      }}>
-                        {catLabel}
-                      </span>
+                      }}>{catLabel}</span>
                     )}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: 13, color: "#111", fontWeight: 500 }}>
+                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textPrimary, fontWeight: 500 }}>
                     {item.description}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: 13, color: "#374151", textAlign: "center" }}>
+                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textSecondary, textAlign: "center" }}>
                     {item.quantity}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: 13, color: "#374151", textAlign: "right", fontFamily: "monospace" }}>
+                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textSecondary, textAlign: "right", fontFamily: "monospace" }}>
                     {fmt(item.unitPrice, currency)}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: 13, color: "#111", textAlign: "right", fontFamily: "monospace", fontWeight: 600 }}>
+                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textPrimary, textAlign: "right", fontFamily: "monospace", fontWeight: 600 }}>
                     {fmt(item.total, currency)}
                   </td>
                 </tr>
@@ -235,95 +325,97 @@ export default async function InvoicePrintPage({ params }: Props) {
           </tbody>
         </table>
 
-        {/* ── Totals ─────────────────────────────────────────────── */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 36 }}>
+        {/* ── Totals ───────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: S.sectionGap }}>
           <div style={{ minWidth: 280 }}>
-            {(
-              [
-                ["Subtotal", fmt(invoice.subtotal, currency)],
-                invoice.tax > 0 ? ["Tax", "+" + fmt(invoice.tax, currency)] : null,
-                invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency)] : null,
-              ].filter(Boolean) as [string, string][]
-            ).map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "7px 4px", borderBottom: "1px solid #e5e7eb" }}>
-                <span style={{ color: "#374151", fontWeight: 500 }}>{label}</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 600, color: "#111" }}>{value}</span>
+            {([
+              ["Subtotal",  fmt(invoice.subtotal, currency)],
+              invoice.tax      > 0 ? ["Tax",      "+" + fmt(invoice.tax, currency)]      : null,
+              invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency)] : null,
+            ].filter(Boolean) as [string, string][]).map(([label, value]) => (
+              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontTotalLabel, padding: "7px 4px", borderBottom: `1px solid ${S.border}` }}>
+                <span style={{ color: S.textSecondary, fontWeight: 500 }}>{label}</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 600, color: S.textPrimary }}>{value}</span>
               </div>
             ))}
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               padding: "13px 18px", marginTop: 10,
-              background: "#0a0a0a", borderRadius: 8,
+              background: S.totalDueBg, borderRadius: 8,
             }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#e5e7eb", letterSpacing: "0.06em" }}>TOTAL DUE</span>
-              <span style={{ fontSize: 20, fontWeight: 800, color: "#E8521A", fontFamily: "monospace" }}>
+              <span style={{ fontSize: S.fontTotalDueLabel, fontWeight: 700, color: S.totalDueLabel, letterSpacing: "0.06em" }}>TOTAL DUE</span>
+              <span style={{ fontSize: S.fontTotalDueAmount, fontWeight: 800, color: S.totalDueAmount, fontFamily: "monospace" }}>
                 {fmt(invoice.total, currency)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ── Notes ──────────────────────────────────────────────── */}
+        {/* ── Notes ────────────────────────────────────────────────────── */}
         {(invoice.notes || paymentTerms) && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 8 }}>Notes</div>
+            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 8 }}>Notes</div>
             {invoice.notes && (
-              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.75, whiteSpace: "pre-line", background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
+              <div style={{ fontSize: S.fontNotes, color: S.textSecondary, lineHeight: 1.75, whiteSpace: "pre-line", background: S.notesBg, borderRadius: 6, padding: 14, border: `1px solid ${S.border}` }}>
                 {invoice.notes}
               </div>
             )}
             {paymentTerms && (
-              <div style={{ fontSize: 12, color: "#374151", lineHeight: 1.75, whiteSpace: "pre-line", marginTop: 10, background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
+              <div style={{ fontSize: S.fontNotes, color: S.textSecondary, lineHeight: 1.75, whiteSpace: "pre-line", marginTop: 10, background: S.notesBg, borderRadius: 6, padding: 14, border: `1px solid ${S.border}` }}>
                 {paymentTerms}
               </div>
             )}
           </div>
         )}
 
-        {/* ── Banking Details ─────────────────────────────────────── */}
+        {/* ── Banking Details — Receiving Bank trên, Account Holder dưới ── */}
         {hasBanking && (
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: "#E8521A", marginBottom: 12 }}>Banking / Payment Details</div>
-            <div style={{ display: "grid", gridTemplateColumns: accountHolder.length > 0 ? "1fr 1fr" : "1fr", gap: 16 }}>
-
-              {/* Receiving Bank */}
-              {receivingBank.length > 0 && (
-                <div style={{ background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Receiving Bank</div>
-                  {receivingBank.map(({ key, val }, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, gap: 12 }}>
-                      <span style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{key}</span>
-                      <span style={{ fontWeight: 600, color: "#111", textAlign: "right" }}>{val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Account Holder */}
-              {accountHolder.length > 0 && (
-                <div style={{ background: "#f9fafb", borderRadius: 6, padding: 14, border: "1px solid #e5e7eb" }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "#6b7280", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 10 }}>Account Holder</div>
-                  {accountHolder.map(({ key, val }, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6, gap: 12 }}>
-                      <span style={{ color: "#6b7280", whiteSpace: "nowrap" }}>{key}</span>
-                      <span style={{
-                        fontWeight: 600, color: "#111", textAlign: "right",
-                        fontFamily: key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit",
-                      }}>{val}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 14 }}>
+              Banking / Payment Details
             </div>
+
+            {/* Receiving Bank */}
+            {receivingBank.length > 0 && (
+              <div style={{ background: S.bankingCardBg, borderRadius: 6, padding: "14px 18px", border: `1px solid ${S.border}`, marginBottom: 10 }}>
+                <div style={{ fontSize: S.fontBankingHeader, fontWeight: 700, color: S.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10 }}>
+                  Receiving Bank
+                </div>
+                {receivingBank.map(({ key, val }, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontBankingLabel, marginBottom: 6, gap: 24 }}>
+                    <span style={{ color: S.textMuted, whiteSpace: "nowrap" }}>{key}</span>
+                    <span style={{ fontWeight: 600, color: S.textPrimary, textAlign: "right" }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Account Holder */}
+            {accountHolder.length > 0 && (
+              <div style={{ background: S.bankingCardBg, borderRadius: 6, padding: "14px 18px", border: `1px solid ${S.border}` }}>
+                <div style={{ fontSize: S.fontBankingHeader, fontWeight: 700, color: S.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10 }}>
+                  Account Holder
+                </div>
+                {accountHolder.map(({ key, val }, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontBankingValue, marginBottom: 6, gap: 24 }}>
+                    <span style={{ color: S.textMuted, whiteSpace: "nowrap" }}>{key}</span>
+                    <span style={{
+                      fontWeight: 600, color: S.textPrimary, textAlign: "right",
+                      fontFamily: key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit",
+                    }}>{val}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
-        {/* ── Footer ─────────────────────────────────────────────── */}
-        <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 11, color: "#9ca3af" }}>
-            Thank you for your business. · CTY TNHH HUNTER 3DVISUAL · hunter3dvisual.com
+        {/* ── Footer ───────────────────────────────────────────────────── */}
+        <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: S.fontFooter, color: "#9ca3af" }}>
+            {COMPANY.footer} · {COMPANY.name} · {COMPANY.website}
           </div>
-          <div style={{ fontFamily: "monospace", fontSize: 11, color: "#d1d5db" }}>
+          <div style={{ fontFamily: "monospace", fontSize: S.fontFooter, color: "#d1d5db" }}>
             {invoice.number}
           </div>
         </div>
