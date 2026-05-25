@@ -111,6 +111,12 @@ export async function getInvoiceById(id: string) {
   });
 }
 
+export async function deleteInvoice(id: string) {
+  const { userId } = await auth();
+  if (!userId) throw new Error("Unauthorized");
+  return db.invoice.delete({ where: { id } });
+}
+
 export async function updateInvoiceStatus(id: string, status: string) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");

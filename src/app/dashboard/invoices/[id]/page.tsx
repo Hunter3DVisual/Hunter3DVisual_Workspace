@@ -1,16 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Building2, Calendar, FolderKanban, Hash, Receipt,
-  Pencil, Loader2, CheckCircle2, Send, XCircle, Printer,
+  Pencil, Loader2, CheckCircle2, Send, XCircle, Printer, Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn, formatCurrency, formatDate } from "@/lib/utils";
-import { getInvoiceById, updateInvoiceStatus } from "@/actions/finance";
+import { getInvoiceById, updateInvoiceStatus, deleteInvoice } from "@/actions/finance";
 import { InvoiceFormModal } from "@/components/invoices/InvoiceFormModal";
 import type { InvoiceStatus } from "@prisma/client";
 import type { InvoiceWithClient } from "@/types/finance";
@@ -49,11 +49,13 @@ type FullInvoice = Awaited<ReturnType<typeof getInvoiceById>>;
 
 export default function InvoiceDetailPage() {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
 
   const [invoice, setInvoice] = useState<FullInvoice>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   async function load() {
     const data = await getInvoiceById(params.id);
@@ -71,6 +73,19 @@ export default function InvoiceDetailPage() {
       await load();
     } finally {
       setActionLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    if (!invoice) return;
+    setActionLoading(true);
+    try {
+      await deleteInvoice(invoice.id);
+      router.push("/dashboard/invoices");
+    } catch (e) {
+      console.error("Delete invoice error:", e);
+      setActionLoading(false);
+      setDeleteConfirm(false);
     }
   }
 
@@ -189,6 +204,31 @@ export default function InvoiceDetailPage() {
             Cancel
           </Button>
         )}
+
+        {/* Delete — separated to the right */}
+        <div className="ml-auto">
+          {!deleteConfirm ? (
+            <Button variant="ghost" size="sm" disabled={actionLoading}
+              className="gap-1.5 text-muted-foreground/50 hover:text-red-400 hover:bg-red-500/10"
+              onClick={() => setDeleteConfirm(true)}>
+              <Trash2 className="w-3.5 h-3.5" /> Delete
+            </Button>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-red-400">Delete permanently?</span>
+              <Button variant="outline" size="sm" disabled={actionLoading}
+                className="gap-1 border-red-500/40 text-red-400 hover:bg-red-500/15 h-7 text-xs"
+                onClick={handleDelete}>
+                {actionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                Yes, delete
+              </Button>
+              <Button variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground"
+                onClick={() => setDeleteConfirm(false)}>
+                No
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Meta cards */}

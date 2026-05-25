@@ -350,8 +350,13 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
           {/* ── Row 1: Invoice # + Contract Ref */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="inv-num">Invoice #</Label>
-              <Input id="inv-num" {...register("number")} placeholder="INV-2601-001" className="font-mono text-xs" />
+              <Label htmlFor="inv-num">
+                Invoice #
+                {invoice && <span className="ml-2 text-[10px] text-muted-foreground/50 font-normal">read-only · số HĐ không đổi</span>}
+              </Label>
+              <Input id="inv-num" {...register("number")} placeholder="INV-2601-001"
+                className={cn("font-mono text-xs", invoice && "opacity-50 cursor-not-allowed")}
+                readOnly={!!invoice} />
               {errors.number && <p className="text-xs text-red-400">{errors.number.message}</p>}
             </div>
             <div className="space-y-1.5">
