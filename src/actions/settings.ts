@@ -6,7 +6,7 @@ import type { BankingInfo } from "@/types/finance";
 
 // ─── Defaults ────────────────────────────────────────────────────────────────
 
-export const DEFAULT_COMPANY: CompanyInfo = {
+const DEFAULT_COMPANY: CompanyInfo = {
   name:    "CTY TNHH HUNTER 3DVISUAL",
   line1:   "196 Trương Xuân Nam, Phường Ngũ Hành Sơn",
   line2:   "Đà Nẵng, Vietnam",
@@ -16,7 +16,7 @@ export const DEFAULT_COMPANY: CompanyInfo = {
   footer:  "Thank you for your business.",
 };
 
-export const DEFAULT_STYLE: InvoiceStyle = {
+const DEFAULT_STYLE: InvoiceStyle = {
   brand:          "#E8521A",
   textPrimary:    "#111111",
   textSecondary:  "#374151",
@@ -35,7 +35,7 @@ export const DEFAULT_STYLE: InvoiceStyle = {
   fontTotalDueAmount:  20,
 };
 
-export const DEFAULT_BANKING: BankingInfo = {
+const DEFAULT_BANKING: BankingInfo = {
   bankName:         "ACB – Asia Commercial Bank",
   bankAddress:      "442 Nguyen Thi Minh Khai Street, District 3, Ho Chi Minh City, Vietnam",
   bankPostalCode:   "70000",
