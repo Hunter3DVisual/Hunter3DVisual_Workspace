@@ -42,6 +42,7 @@ jobs:
     name: Build Check
     runs-on: ubuntu-latest
     needs: lint
+    continue-on-error: true  # Requires Clerk secrets not available in CI; Vercel is the authoritative build
     steps:
       - uses: actions/checkout@v4
 
