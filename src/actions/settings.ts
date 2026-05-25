@@ -23,7 +23,7 @@ const DEFAULT_STYLE: InvoiceStyle = {
   textSecondary:     "#374151",
   textMuted:         "#6b7280",
 
-  // Surface / background colors
+  // Surfaces
   borderColor:       "#e5e7eb",
   rowAltBg:          "#fafafa",
   tableHeaderBg:     "#f9fafb",
@@ -35,33 +35,79 @@ const DEFAULT_STYLE: InvoiceStyle = {
   totalDueTextColor: "#e5e7eb",
   totalDueAmount:    "#E8521A",
 
-  // Logo — 74px default (~20% larger than previous 62px)
+  // Logo
   logoHeight:   74,
   logoPosition: "left",
+  logoOffsetX:  0,
+  logoOffsetY:  0,
 
-  // Typography
-  fontFamily:         "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
-  fontInvoiceTitle:   36,
-  fontSectionHeader:  15,   // was 13, improved hierarchy
-  fontCompanyName:    14,
-  fontCompanyDetail:  11,
-  fontInvoiceNumber:  14,
-  fontStatusBadge:    11,
-  fontLabel:          13,
-  fontValue:          13,
-  fontClientName:     16,   // was 15
-  fontClientDetail:   13,
-  fontTableHeader:    10,
-  fontTableRow:       13,
-  fontTotalLabel:     13,
-  fontTotalDueLabel:  13,
-  fontTotalDueAmount: 22,   // was 20
-  fontNotes:          12,
-  fontBankingHeader:  10,
-  fontBankingLabel:   12,
-  fontFooter:         11,
+  // Global typography
+  fontFamily:        "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+  fontInvoiceTitle:  36,
+  fontStatusBadge:   11,
+  fontFooter:        11,
 
-  // Spacing & Layout
+  // Company block
+  fontCompanyName:         14,
+  fontWeightCompanyName:   "700",
+  fontStyleCompanyName:    "normal",
+  fontCompanyDetail:       11,
+  fontWeightCompanyDetail: "400",
+  fontStyleCompanyDetail:  "normal",
+
+  // Invoice Details rows
+  fontSectionHeader: 15,
+  fontLabel:         13,
+  fontWeightLabel:   "400",
+  fontStyleLabel:    "normal",
+  fontValue:         13,
+  fontWeightValue:   "600",
+  fontStyleValue:    "normal",
+  fontInvoiceNumber: 14,
+
+  // Bill To (client)
+  fontClientName:         16,
+  fontWeightClientName:   "700",
+  fontStyleClientName:    "normal",
+  textDecoClientName:     "none",
+  fontClientDetail:       13,
+  fontWeightClientDetail: "400",
+  fontStyleClientDetail:  "normal",
+
+  // Table
+  fontTableHeader:     10,
+  fontTableRow:        13,
+
+  // Totals
+  fontTotalLabel:      13,
+  fontTotalDueLabel:   13,
+  fontTotalDueAmount:  22,
+
+  // Notes
+  fontNotes:           12,
+
+  // Banking typography
+  fontBankingHeader:             10,
+  colorBankingSectionTitle:      "#6b7280",
+  fontWeightBankingSectionTitle: "700",
+
+  fontBankingLabel:              12,
+  colorBankingLabel:             "#6b7280",
+  fontWeightBankingLabel:        "400",
+  fontStyleBankingLabel:         "normal",
+
+  fontBankingValue:              12,
+  colorBankingValue:             "#111111",
+  fontWeightBankingValue:        "600",
+  fontStyleBankingValue:         "normal",
+
+  // Banking spacing
+  bankingRowGap:   6,
+  bankingCardPadV: 14,
+  bankingCardPadH: 18,
+  bankingCardGap:  10,
+
+  // Global spacing
   pagePaddingV:     48,
   pagePaddingH:     56,
   sectionGap:       36,
