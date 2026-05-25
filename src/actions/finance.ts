@@ -80,10 +80,24 @@ export async function createInvoice(input: CreateInvoiceInput) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const { number, contractRef, clientId, projectId, dueDate, subtotal, tax = 0, discount = 0, total, currency = "USD", notes, terms, items } = input;
+  const { number, contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
 
   return db.invoice.create({
-    data: { number, contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items },
+    data: {
+      number,
+      contractRef:  contractRef  || undefined,
+      clientId,
+      projectId:    projectId    || undefined,
+      dueDate:      new Date(dueDate),
+      subtotal,
+      tax:          tax          ?? 0,
+      discount:     discount     ?? 0,
+      total,
+      currency:     currency     || "USD",
+      notes:        notes        || undefined,
+      terms:        terms        || undefined,
+      items,
+    },
   });
 }
 
@@ -110,28 +124,28 @@ export async function updateInvoiceStatus(id: string, status: string) {
   });
 }
 
-export async function updateInvoice(id: string, input: Partial<CreateInvoiceInput>) {
+export async function updateInvoice(id: string, input: CreateInvoiceInput) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const { number, contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
+  const { contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
 
   return db.invoice.update({
     where: { id },
     data: {
-      ...(number !== undefined && { number }),
-      ...(contractRef !== undefined && { contractRef }),
-      ...(clientId !== undefined && { clientId }),
-      ...(projectId !== undefined && { projectId }),
-      ...(dueDate !== undefined && { dueDate }),
-      ...(subtotal !== undefined && { subtotal }),
-      ...(tax !== undefined && { tax }),
-      ...(discount !== undefined && { discount }),
-      ...(total !== undefined && { total }),
-      ...(currency !== undefined && { currency }),
-      ...(notes !== undefined && { notes }),
-      ...(terms !== undefined && { terms }),
-      ...(items !== undefined && { items }),
+      // number is intentionally omitted — invoice numbers never change after creation
+      contractRef:  contractRef  || undefined,
+      clientId,
+      projectId:    projectId    || undefined,
+      dueDate:      new Date(dueDate),
+      subtotal,
+      tax:          tax          ?? 0,
+      discount:     discount     ?? 0,
+      total,
+      currency:     currency     || "USD",
+      notes:        notes        || undefined,
+      terms:        terms        || undefined,
+      items,
     },
   });
 }

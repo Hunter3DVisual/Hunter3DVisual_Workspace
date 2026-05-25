@@ -49,19 +49,19 @@ export type BankingInfo = {
 };
 
 export type CreateInvoiceInput = {
-  number: string;
-  contractRef?: string;
-  clientId: string;
-  projectId?: string;
-  dueDate: Date;
-  subtotal: number;
-  tax?: number;
-  discount?: number;
-  total: number;
-  currency?: string;
-  notes?: string;
-  terms?: string;
-  items: InvoiceLineItem[];
+  number:      string;
+  contractRef: string | null;
+  clientId:    string;
+  projectId:   string | null;
+  dueDate:     string;      // ISO string "YYYY-MM-DD" — safe for server action serialization
+  subtotal:    number;
+  tax:         number;
+  discount:    number;
+  total:       number;
+  currency:    string;
+  notes:       string | null;
+  terms:       string | null;
+  items:       InvoiceLineItem[];
 };
 
 export type InvoiceFilters = {

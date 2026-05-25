@@ -274,13 +274,15 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
 
   const onSubmit = async (values: FormValues) => {
     setSaving(true);
+    setSaveError(null);
     try {
+      // Strip undefined category to avoid Next.js serialization issues
       const items = values.items.map((it) => ({
-        category: it.category,
+        ...(it.category ? { category: it.category } : {}),
         description: it.description,
-        quantity: it.quantity,
-        unitPrice: it.unitPrice,
-        total: +(it.quantity * it.unitPrice).toFixed(2),
+        quantity:    it.quantity,
+        unitPrice:   it.unitPrice,
+        total:       +(it.quantity * it.unitPrice).toFixed(2),
       }));
 
       // Strip any existing banking block before appending (prevents duplicates on re-save)
@@ -288,19 +290,20 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
       const bankingText = banking.accountNumber ? serializeBanking(banking) : "";
       const terms = [cleanTerms, bankingText].filter(Boolean).join("\n\n");
 
+      // Pass dueDate as ISO string to avoid Date serialization issues in server actions
       const payload = {
         number:      values.number,
-        contractRef: values.contractRef || undefined,
+        contractRef: values.contractRef || null,
         clientId:    values.clientId,
-        projectId:   values.projectId || undefined,
-        dueDate:     new Date(values.dueDate),
+        projectId:   values.projectId || null,
+        dueDate:     values.dueDate,        // ISO string "YYYY-MM-DD"
         subtotal:    +subtotal.toFixed(2),
         tax:         taxAmount,
         discount:    +discountAmt.toFixed(2),
         total:       total,
         currency:    values.currency || "USD",
-        notes:       values.notes || undefined,
-        terms:       terms || undefined,
+        notes:       values.notes || null,
+        terms:       terms || null,
         items,
       };
 
@@ -310,9 +313,12 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
       router.refresh();
       onOpenChange(false);
     } catch (e) {
-      console.error(e);
+      console.error("Invoice save error:", e);
+      const digest = (e as any)?.digest ? ` [${(e as any).digest}]` : "";
       setSaveError(
-        e instanceof Error ? e.message : "Failed to save invoice. Please try again."
+        e instanceof Error
+          ? e.message + digest
+          : `Failed to save invoice. Please try again.${digest}`
       );
     } finally {
       setSaving(false);
