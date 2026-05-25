@@ -5,8 +5,6 @@ import { PrintActions } from "@/app/print/invoices/PrintActions";
 import type { InvoiceLineItem } from "@/types/finance";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Không cần chỉnh bên dưới trừ khi muốn thay đổi layout/logic
-// ─────────────────────────────────────────────────────────────────────────────
 
 const CAT_LABEL: Record<string, string> = {
   EXTERIOR:  "Exterior Render",
@@ -93,120 +91,150 @@ interface Props {
 
 export default async function InvoicePrintPage({ params }: Props) {
   const { id } = await params;
-  const [invoice, { company: COMPANY, style }] = await Promise.all([
+  const [invoice, { company, style }] = await Promise.all([
     getInvoiceById(id),
     getAllSettings(),
   ]);
   if (!invoice) notFound();
 
-  // Build S from DB settings + fixed non-configurable values
-  const S = {
-    ...style,
-    textCompany:    "#4b5563",
-    border:         "#e5e7eb",
-    rowAlt:         "#fafafa",
-    tableHeaderBg:  "#f9fafb",
-    bankingCardBg:  "#f9fafb",
-    totalDueLabel:  "#e5e7eb",
-    notesBg:        "#f9fafb",
-    divider:        `linear-gradient(90deg, ${style.brand}, #f97316, transparent)`,
-    fontInvoiceNumber:  14,
-    fontStatusBadge:    11,
-    fontClientName:     15,
-    fontClientDetail:   13,
-    fontTableHeader:    10,
-    fontTotalLabel:     13,
-    fontNotes:          12,
-    fontBankingHeader:  10,
-    fontBankingLabel:   12,
-    fontBankingValue:   12,
-    fontFooter:         11,
-    pagePaddingV:       48,
-    pagePaddingH:       56,
-    sectionGap:         36,
-  };
+  // Computed values (not in settings — derived from settings)
+  const divider = `linear-gradient(90deg, ${style.brand}, #f97316, transparent)`;
 
   const items = (invoice.items as InvoiceLineItem[]) ?? [];
   const { receivingBank, accountHolder, other: paymentTerms } = parseBankingFromTerms(invoice.terms);
   const hasBanking = receivingBank.length > 0 || accountHolder.length > 0;
   const statusColor = STATUS_COLOR[invoice.status] ?? "#6b7280";
   const currency = invoice.currency ?? "USD";
+  const r = style.borderRadius;
+
+  // When logoPosition = "right", the header columns are reversed
+  const logoOnRight = style.logoPosition === "right";
 
   return (
     <>
       <style>{`
         @page { size: A4; margin: 0; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #fff; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body {
+          font-family: ${style.fontFamily};
+          background: #fff;
+          color: #111;
+          line-height: ${style.lineHeight};
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
         @media print { .no-print { display: none !important; } body { margin: 0; } }
       `}</style>
 
       <PrintActions />
 
-      <div style={{ maxWidth: 794, margin: "0 auto", padding: `${S.pagePaddingV}px ${S.pagePaddingH}px`, minHeight: "100vh", background: "#fff" }}>
+      <div style={{
+        maxWidth: 794,
+        margin: "0 auto",
+        padding: `${style.pagePaddingV}px ${style.pagePaddingH}px`,
+        minHeight: "100vh",
+        background: "#fff",
+      }}>
 
-        {/* ── Header ───────────────────────────────────────────────────── */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 40 }}>
+        {/* ── Header ─────────────────────────────────────────────────────── */}
+        <div style={{
+          display: "flex",
+          flexDirection: logoOnRight ? "row-reverse" : "row",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          marginBottom: style.sectionGap,
+        }}>
 
-          {/* LEFT: Logo + Company Info */}
+          {/* Logo + Company */}
           <div>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.png" alt="Hunter3DVisual"
-              style={{ height: S.logoHeight, width: "auto", marginBottom: 12, display: "block" }} />
-            <div style={{ fontSize: S.fontCompanyName, fontWeight: 700, color: S.textPrimary, letterSpacing: "0.01em" }}>
-              {COMPANY.name}
+            <img
+              src="/logo.png"
+              alt={company.name}
+              style={{ height: style.logoHeight, width: "auto", marginBottom: 12, display: "block" }}
+            />
+            <div style={{ fontSize: style.fontCompanyName, fontWeight: 700, color: style.textPrimary, letterSpacing: "0.01em" }}>
+              {company.name}
             </div>
-            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany, marginTop: 4 }}>{COMPANY.line1}</div>
-            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany }}>{COMPANY.line2}</div>
-            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany, marginTop: 4 }}>{COMPANY.phone}</div>
-            <div style={{ fontSize: S.fontCompanyDetail, color: S.textCompany }}>{COMPANY.email} · {COMPANY.website}</div>
+            <div style={{ fontSize: style.fontCompanyDetail, color: style.textSecondary, marginTop: 4 }}>{company.line1}</div>
+            <div style={{ fontSize: style.fontCompanyDetail, color: style.textSecondary }}>{company.line2}</div>
+            <div style={{ fontSize: style.fontCompanyDetail, color: style.textSecondary, marginTop: 4 }}>{company.phone}</div>
+            <div style={{ fontSize: style.fontCompanyDetail, color: style.textSecondary }}>{company.email} · {company.website}</div>
           </div>
 
-          {/* RIGHT: INVOICE + number + status */}
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: S.fontInvoiceTitle, fontWeight: 800, color: S.brand, letterSpacing: "-1px", lineHeight: 1 }}>
+          {/* INVOICE label + number + status */}
+          <div style={{ textAlign: logoOnRight ? "left" : "right" }}>
+            <div style={{
+              fontSize: style.fontInvoiceTitle,
+              fontWeight: 800,
+              color: style.brand,
+              letterSpacing: "-1px",
+              lineHeight: 1,
+            }}>
               INVOICE
             </div>
-            <div style={{ fontFamily: "monospace", fontSize: S.fontInvoiceNumber, color: S.textPrimary, marginTop: 6, fontWeight: 700 }}>
+            <div style={{
+              fontFamily: "monospace",
+              fontSize: style.fontInvoiceNumber,
+              color: style.textPrimary,
+              marginTop: 6,
+              fontWeight: 700,
+            }}>
               {invoice.number}
             </div>
             {(invoice as any).contractRef && (
-              <div style={{ fontFamily: "monospace", fontSize: 11, color: S.textMuted, marginTop: 3 }}>
+              <div style={{ fontFamily: "monospace", fontSize: style.fontStatusBadge, color: style.textMuted, marginTop: 3 }}>
                 {(invoice as any).contractRef}
               </div>
             )}
             <div style={{
-              display: "inline-block", marginTop: 8,
-              background: statusColor + "20", color: statusColor,
+              display: "inline-block",
+              marginTop: 8,
+              background: statusColor + "20",
+              color: statusColor,
               border: `1px solid ${statusColor}40`,
-              borderRadius: 6, padding: "3px 12px",
-              fontSize: S.fontStatusBadge, fontWeight: 700, letterSpacing: "0.06em",
+              borderRadius: r,
+              padding: "3px 12px",
+              fontSize: style.fontStatusBadge,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
             }}>
               {invoice.status}
             </div>
           </div>
         </div>
 
-        {/* ── Divider ──────────────────────────────────────────────────── */}
-        <div style={{ height: 2, background: S.divider, marginBottom: 32, borderRadius: 1 }} />
+        {/* ── Divider ─────────────────────────────────────────────────────── */}
+        <div style={{ height: 2, background: divider, marginBottom: style.sectionGap - 4, borderRadius: 1 }} />
 
-        {/* ── Invoice Details + Bill To ─────────────────────────────── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: S.sectionGap }}>
+        {/* ── Invoice Details + Bill To ──────────────────────────────────── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, marginBottom: style.sectionGap }}>
 
           {/* Invoice Details */}
           <div>
-            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 12 }}>
+            <div style={{ fontSize: style.fontSectionHeader, fontWeight: 700, color: style.brand, marginBottom: 14, letterSpacing: "0.01em" }}>
               Invoice Details
             </div>
-            {[
-              ["Issue Date",    fmtDate(invoice.issueDate)],
-              ["Due Date",      fmtDate(invoice.dueDate)],
-              ["Currency",      currency],
+            {([
+              ["Issue Date", fmtDate(invoice.issueDate)],
+              ["Due Date",   fmtDate(invoice.dueDate)],
+              ["Currency",   currency],
               ...((invoice as any).contractRef ? [["Contract Ref", (invoice as any).contractRef]] : []),
-            ].map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontLabel, marginBottom: 7, gap: 16 }}>
-                <span style={{ color: S.textMuted }}>{label}</span>
-                <span style={{ fontWeight: 600, color: S.textPrimary, fontFamily: label === "Contract Ref" ? "monospace" : "inherit", textAlign: "right" }}>
+            ] as [string, string][]).map(([label, value]) => (
+              <div key={label} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: style.fontLabel,
+                marginBottom: 8,
+                gap: 16,
+              }}>
+                <span style={{ color: style.textMuted }}>{label}</span>
+                <span style={{
+                  fontWeight: 600,
+                  color: style.textPrimary,
+                  fontFamily: label === "Contract Ref" ? "monospace" : "inherit",
+                  textAlign: "right",
+                }}>
                   {value}
                 </span>
               </div>
@@ -215,19 +243,19 @@ export default async function InvoicePrintPage({ params }: Props) {
 
           {/* Bill To */}
           <div>
-            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 12 }}>
+            <div style={{ fontSize: style.fontSectionHeader, fontWeight: 700, color: style.brand, marginBottom: 14, letterSpacing: "0.01em" }}>
               Bill To
             </div>
-            <div style={{ fontSize: S.fontClientName, fontWeight: 700, color: S.textPrimary, marginBottom: 4 }}>
+            <div style={{ fontSize: style.fontClientName, fontWeight: 700, color: style.textPrimary, marginBottom: 4 }}>
               {invoice.client.name}
             </div>
             {invoice.client.company && (
-              <div style={{ fontSize: S.fontClientDetail, color: S.textSecondary, marginBottom: 2 }}>
+              <div style={{ fontSize: style.fontClientDetail, color: style.textSecondary, marginBottom: 2 }}>
                 {invoice.client.company}
               </div>
             )}
             {invoice.project && (
-              <div style={{ fontSize: 12, color: S.textMuted, marginTop: 6 }}>
+              <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, marginTop: 6 }}>
                 <span style={{ fontFamily: "monospace", marginRight: 6, color: "#9ca3af" }}>{invoice.project.code}</span>
                 {invoice.project.name}
               </div>
@@ -235,16 +263,19 @@ export default async function InvoicePrintPage({ params }: Props) {
           </div>
         </div>
 
-        {/* ── Line Items ───────────────────────────────────────────────── */}
+        {/* ── Line Items ──────────────────────────────────────────────────── */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: 24 }}>
           <thead>
-            <tr style={{ background: S.tableHeaderBg, borderBottom: `2px solid ${S.border}` }}>
+            <tr style={{ background: style.tableHeaderBg, borderBottom: `2px solid ${style.borderColor}` }}>
               {(["Service", "Description", "Qty", "Unit Price", "Total"] as const).map((col, i) => (
                 <th key={col} style={{
                   textAlign: i === 0 || i === 1 ? "left" : i === 2 ? "center" : "right",
-                  padding: "10px 12px",
-                  fontSize: S.fontTableHeader, fontWeight: 700,
-                  letterSpacing: "0.06em", color: S.textSecondary, textTransform: "uppercase",
+                  padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px`,
+                  fontSize: style.fontTableHeader,
+                  fontWeight: 700,
+                  letterSpacing: "0.06em",
+                  color: style.textSecondary,
+                  textTransform: "uppercase",
                 }}>{col}</th>
               ))}
             </tr>
@@ -254,28 +285,32 @@ export default async function InvoicePrintPage({ params }: Props) {
               const catColor = item.category ? CAT_COLOR[item.category] : "#6b7280";
               const catLabel = item.category ? CAT_LABEL[item.category] : "";
               return (
-                <tr key={i} style={{ borderBottom: `1px solid #f3f4f6`, background: i % 2 === 0 ? "#fff" : S.rowAlt }}>
-                  <td style={{ padding: "12px 12px" }}>
+                <tr key={i} style={{ borderBottom: `1px solid #f3f4f6`, background: i % 2 === 0 ? "#fff" : style.rowAltBg }}>
+                  <td style={{ padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px` }}>
                     {catLabel && (
                       <span style={{
                         display: "inline-block",
-                        background: catColor + "18", color: catColor,
+                        background: catColor + "18",
+                        color: catColor,
                         border: `1px solid ${catColor}40`,
-                        borderRadius: 4, padding: "2px 7px",
-                        fontSize: 10, fontWeight: 600, whiteSpace: "nowrap",
+                        borderRadius: r - 2 > 0 ? r - 2 : 2,
+                        padding: "2px 7px",
+                        fontSize: 10,
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
                       }}>{catLabel}</span>
                     )}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textPrimary, fontWeight: 500 }}>
+                  <td style={{ padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px`, fontSize: style.fontTableRow, color: style.textPrimary, fontWeight: 500 }}>
                     {item.description}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textSecondary, textAlign: "center" }}>
+                  <td style={{ padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px`, fontSize: style.fontTableRow, color: style.textSecondary, textAlign: "center" }}>
                     {item.quantity}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textSecondary, textAlign: "right", fontFamily: "monospace" }}>
+                  <td style={{ padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px`, fontSize: style.fontTableRow, color: style.textSecondary, textAlign: "right", fontFamily: "monospace" }}>
                     {fmt(item.unitPrice, currency)}
                   </td>
-                  <td style={{ padding: "12px 12px", fontSize: S.fontTableRow, color: S.textPrimary, textAlign: "right", fontFamily: "monospace", fontWeight: 600 }}>
+                  <td style={{ padding: `${style.tableRowPaddingV}px ${style.tableRowPaddingH}px`, fontSize: style.fontTableRow, color: style.textPrimary, textAlign: "right", fontFamily: "monospace", fontWeight: 600 }}>
                     {fmt(item.total, currency)}
                   </td>
                 </tr>
@@ -284,82 +319,152 @@ export default async function InvoicePrintPage({ params }: Props) {
           </tbody>
         </table>
 
-        {/* ── Totals ───────────────────────────────────────────────────── */}
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: S.sectionGap }}>
-          <div style={{ minWidth: 280 }}>
+        {/* ── Totals ──────────────────────────────────────────────────────── */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: style.sectionGap }}>
+          <div style={{ minWidth: 300 }}>
             {([
               ["Subtotal",  fmt(invoice.subtotal, currency)],
               invoice.tax      > 0 ? ["Tax",      "+" + fmt(invoice.tax, currency)]      : null,
               invoice.discount > 0 ? ["Discount", "-" + fmt(invoice.discount, currency)] : null,
             ].filter(Boolean) as [string, string][]).map(([label, value]) => (
-              <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontTotalLabel, padding: "7px 4px", borderBottom: `1px solid ${S.border}` }}>
-                <span style={{ color: S.textSecondary, fontWeight: 500 }}>{label}</span>
-                <span style={{ fontFamily: "monospace", fontWeight: 600, color: S.textPrimary }}>{value}</span>
+              <div key={label} style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: style.fontTotalLabel,
+                padding: "7px 4px",
+                borderBottom: `1px solid ${style.borderColor}`,
+              }}>
+                <span style={{ color: style.textSecondary, fontWeight: 500 }}>{label}</span>
+                <span style={{ fontFamily: "monospace", fontWeight: 600, color: style.textPrimary }}>{value}</span>
               </div>
             ))}
             <div style={{
-              display: "flex", justifyContent: "space-between", alignItems: "center",
-              padding: "13px 18px", marginTop: 10,
-              background: S.totalDueBg, borderRadius: 8,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "14px 20px",
+              marginTop: 10,
+              background: style.totalDueBg,
+              borderRadius: r,
             }}>
-              <span style={{ fontSize: S.fontTotalDueLabel, fontWeight: 700, color: S.totalDueLabel, letterSpacing: "0.06em" }}>TOTAL DUE</span>
-              <span style={{ fontSize: S.fontTotalDueAmount, fontWeight: 800, color: S.totalDueAmount, fontFamily: "monospace" }}>
+              <span style={{ fontSize: style.fontTotalDueLabel, fontWeight: 700, color: style.totalDueTextColor, letterSpacing: "0.06em" }}>
+                TOTAL DUE
+              </span>
+              <span style={{ fontSize: style.fontTotalDueAmount, fontWeight: 800, color: style.totalDueAmount, fontFamily: "monospace" }}>
                 {fmt(invoice.total, currency)}
               </span>
             </div>
           </div>
         </div>
 
-        {/* ── Notes ────────────────────────────────────────────────────── */}
+        {/* ── Notes ───────────────────────────────────────────────────────── */}
         {(invoice.notes || paymentTerms) && (
           <div style={{ marginBottom: 28 }}>
-            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 8 }}>Notes</div>
+            <div style={{ fontSize: style.fontSectionHeader, fontWeight: 700, color: style.brand, marginBottom: 10, letterSpacing: "0.01em" }}>
+              Notes
+            </div>
             {invoice.notes && (
-              <div style={{ fontSize: S.fontNotes, color: S.textSecondary, lineHeight: 1.75, whiteSpace: "pre-line", background: S.notesBg, borderRadius: 6, padding: 14, border: `1px solid ${S.border}` }}>
+              <div style={{
+                fontSize: style.fontNotes,
+                color: style.textSecondary,
+                lineHeight: style.lineHeight,
+                whiteSpace: "pre-line",
+                background: style.notesBg,
+                borderRadius: r,
+                padding: "14px 16px",
+                border: `1px solid ${style.borderColor}`,
+              }}>
                 {invoice.notes}
               </div>
             )}
             {paymentTerms && (
-              <div style={{ fontSize: S.fontNotes, color: S.textSecondary, lineHeight: 1.75, whiteSpace: "pre-line", marginTop: 10, background: S.notesBg, borderRadius: 6, padding: 14, border: `1px solid ${S.border}` }}>
+              <div style={{
+                fontSize: style.fontNotes,
+                color: style.textSecondary,
+                lineHeight: style.lineHeight,
+                whiteSpace: "pre-line",
+                marginTop: 10,
+                background: style.notesBg,
+                borderRadius: r,
+                padding: "14px 16px",
+                border: `1px solid ${style.borderColor}`,
+              }}>
                 {paymentTerms}
               </div>
             )}
           </div>
         )}
 
-        {/* ── Banking Details — Receiving Bank trên, Account Holder dưới ── */}
+        {/* ── Banking — Receiving Bank, then Account Holder ────────────── */}
         {hasBanking && (
           <div style={{ marginBottom: 32 }}>
-            <div style={{ fontSize: S.fontSectionHeader, fontWeight: 700, color: S.brand, marginBottom: 14 }}>
+            <div style={{ fontSize: style.fontSectionHeader, fontWeight: 700, color: style.brand, marginBottom: 14, letterSpacing: "0.01em" }}>
               Banking / Payment Details
             </div>
 
-            {/* Receiving Bank */}
             {receivingBank.length > 0 && (
-              <div style={{ background: S.bankingCardBg, borderRadius: 6, padding: "14px 18px", border: `1px solid ${S.border}`, marginBottom: 10 }}>
-                <div style={{ fontSize: S.fontBankingHeader, fontWeight: 700, color: S.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10 }}>
+              <div style={{
+                background: style.bankingCardBg,
+                borderRadius: r,
+                padding: "14px 18px",
+                border: `1px solid ${style.borderColor}`,
+                marginBottom: 10,
+              }}>
+                <div style={{
+                  fontSize: style.fontBankingHeader,
+                  fontWeight: 700,
+                  color: style.textMuted,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                }}>
                   Receiving Bank
                 </div>
                 {receivingBank.map(({ key, val }, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontBankingLabel, marginBottom: 6, gap: 24 }}>
-                    <span style={{ color: S.textMuted, whiteSpace: "nowrap" }}>{key}</span>
-                    <span style={{ fontWeight: 600, color: S.textPrimary, textAlign: "right" }}>{val}</span>
+                  <div key={i} style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: style.fontBankingLabel,
+                    marginBottom: 6,
+                    gap: 24,
+                  }}>
+                    <span style={{ color: style.textMuted, whiteSpace: "nowrap" }}>{key}</span>
+                    <span style={{ fontWeight: 600, color: style.textPrimary, textAlign: "right" }}>{val}</span>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Account Holder */}
             {accountHolder.length > 0 && (
-              <div style={{ background: S.bankingCardBg, borderRadius: 6, padding: "14px 18px", border: `1px solid ${S.border}` }}>
-                <div style={{ fontSize: S.fontBankingHeader, fontWeight: 700, color: S.textMuted, letterSpacing: "0.07em", textTransform: "uppercase", marginBottom: 10 }}>
+              <div style={{
+                background: style.bankingCardBg,
+                borderRadius: r,
+                padding: "14px 18px",
+                border: `1px solid ${style.borderColor}`,
+              }}>
+                <div style={{
+                  fontSize: style.fontBankingHeader,
+                  fontWeight: 700,
+                  color: style.textMuted,
+                  letterSpacing: "0.07em",
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                }}>
                   Account Holder
                 </div>
                 {accountHolder.map(({ key, val }, i) => (
-                  <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: S.fontBankingValue, marginBottom: 6, gap: 24 }}>
-                    <span style={{ color: S.textMuted, whiteSpace: "nowrap" }}>{key}</span>
+                  <div key={i} style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    fontSize: style.fontBankingLabel,
+                    marginBottom: 6,
+                    gap: 24,
+                  }}>
+                    <span style={{ color: style.textMuted, whiteSpace: "nowrap" }}>{key}</span>
                     <span style={{
-                      fontWeight: 600, color: S.textPrimary, textAlign: "right",
+                      fontWeight: 600,
+                      color: style.textPrimary,
+                      textAlign: "right",
                       fontFamily: key.includes("Account") || key.includes("SWIFT") ? "monospace" : "inherit",
                     }}>{val}</span>
                   </div>
@@ -369,12 +474,12 @@ export default async function InvoicePrintPage({ params }: Props) {
           </div>
         )}
 
-        {/* ── Footer ───────────────────────────────────────────────────── */}
-        <div style={{ borderTop: `1px solid ${S.border}`, paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: S.fontFooter, color: "#9ca3af" }}>
-            {COMPANY.footer} · {COMPANY.name} · {COMPANY.website}
+        {/* ── Footer ──────────────────────────────────────────────────────── */}
+        <div style={{ borderTop: `1px solid ${style.borderColor}`, paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontSize: style.fontFooter, color: "#9ca3af" }}>
+            {company.footer} · {company.name} · {company.website}
           </div>
-          <div style={{ fontFamily: "monospace", fontSize: S.fontFooter, color: "#d1d5db" }}>
+          <div style={{ fontFamily: "monospace", fontSize: style.fontFooter, color: "#d1d5db" }}>
             {invoice.number}
           </div>
         </div>

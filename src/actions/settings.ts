@@ -17,22 +17,58 @@ const DEFAULT_COMPANY: CompanyInfo = {
 };
 
 const DEFAULT_STYLE: InvoiceStyle = {
-  brand:          "#E8521A",
-  textPrimary:    "#111111",
-  textSecondary:  "#374151",
-  textMuted:      "#6b7280",
-  totalDueBg:     "#0a0a0a",
-  totalDueAmount: "#E8521A",
-  logoHeight:          62,
-  fontInvoiceTitle:    32,
-  fontSectionHeader:   13,
-  fontCompanyName:     14,
-  fontCompanyDetail:   11,
-  fontLabel:           13,
-  fontValue:           13,
-  fontTableRow:        13,
-  fontTotalDueLabel:   13,
-  fontTotalDueAmount:  20,
+  // Brand & text colors
+  brand:             "#E8521A",
+  textPrimary:       "#111111",
+  textSecondary:     "#374151",
+  textMuted:         "#6b7280",
+
+  // Surface / background colors
+  borderColor:       "#e5e7eb",
+  rowAltBg:          "#fafafa",
+  tableHeaderBg:     "#f9fafb",
+  notesBg:           "#f9fafb",
+  bankingCardBg:     "#f9fafb",
+
+  // Total Due box
+  totalDueBg:        "#0a0a0a",
+  totalDueTextColor: "#e5e7eb",
+  totalDueAmount:    "#E8521A",
+
+  // Logo — 74px default (~20% larger than previous 62px)
+  logoHeight:   74,
+  logoPosition: "left",
+
+  // Typography
+  fontFamily:         "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+  fontInvoiceTitle:   36,
+  fontSectionHeader:  15,   // was 13, improved hierarchy
+  fontCompanyName:    14,
+  fontCompanyDetail:  11,
+  fontInvoiceNumber:  14,
+  fontStatusBadge:    11,
+  fontLabel:          13,
+  fontValue:          13,
+  fontClientName:     16,   // was 15
+  fontClientDetail:   13,
+  fontTableHeader:    10,
+  fontTableRow:       13,
+  fontTotalLabel:     13,
+  fontTotalDueLabel:  13,
+  fontTotalDueAmount: 22,   // was 20
+  fontNotes:          12,
+  fontBankingHeader:  10,
+  fontBankingLabel:   12,
+  fontFooter:         11,
+
+  // Spacing & Layout
+  pagePaddingV:     48,
+  pagePaddingH:     56,
+  sectionGap:       36,
+  lineHeight:       1.65,
+  borderRadius:     6,
+  tableRowPaddingV: 12,
+  tableRowPaddingH: 12,
 };
 
 const DEFAULT_BANKING: BankingInfo = {

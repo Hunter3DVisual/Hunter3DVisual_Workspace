@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Building2, FileText, Landmark, CheckCircle2 } from "lucide-react";
+import { Loader2, Building2, FileText, Landmark, CheckCircle2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,25 +39,6 @@ const companySchema = z.object({
   footer:  z.string().default(""),
 });
 
-const styleSchema = z.object({
-  brand:          z.string().min(4, "Enter a hex color"),
-  textPrimary:    z.string().min(4),
-  textSecondary:  z.string().min(4),
-  textMuted:      z.string().min(4),
-  totalDueBg:     z.string().min(4),
-  totalDueAmount: z.string().min(4),
-  logoHeight:          z.coerce.number().min(20).max(200),
-  fontInvoiceTitle:    z.coerce.number().min(16).max(72),
-  fontSectionHeader:   z.coerce.number().min(8).max(32),
-  fontCompanyName:     z.coerce.number().min(8).max(32),
-  fontCompanyDetail:   z.coerce.number().min(6).max(20),
-  fontLabel:           z.coerce.number().min(8).max(20),
-  fontValue:           z.coerce.number().min(8).max(20),
-  fontTableRow:        z.coerce.number().min(8).max(20),
-  fontTotalDueLabel:   z.coerce.number().min(8).max(24),
-  fontTotalDueAmount:  z.coerce.number().min(12).max(48),
-});
-
 const bankingSchema = z.object({
   bankName:         z.string().default(""),
   bankAddress:      z.string().default(""),
@@ -71,7 +52,7 @@ const bankingSchema = z.object({
   holderPostalCode: z.string().default(""),
 });
 
-// ─── Helper ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function SavedBadge() {
   return (
@@ -93,8 +74,80 @@ function SectionHeader({ label, hint }: { label: string; hint?: string }) {
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs">{label}{hint && <span className="ml-2 text-muted-foreground/60 font-normal">{hint}</span>}</Label>
+      <Label className="text-xs">
+        {label}
+        {hint && <span className="ml-2 text-muted-foreground/60 font-normal">{hint}</span>}
+      </Label>
       {children}
+    </div>
+  );
+}
+
+function ColorField({ label, hint, value, onChange }: {
+  label: string; hint?: string; value: string; onChange: (v: string) => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">
+        {label}
+        {hint && <span className="ml-2 text-muted-foreground/60 font-normal">{hint}</span>}
+      </Label>
+      <div className="flex items-center gap-2">
+        <input
+          type="color"
+          value={value.startsWith("#") && value.length >= 7 ? value : "#000000"}
+          onChange={e => onChange(e.target.value)}
+          className="w-9 h-9 rounded-md border border-hunter-border cursor-pointer bg-transparent p-0.5"
+        />
+        <Input
+          value={value}
+          onChange={e => onChange(e.target.value)}
+          placeholder="#E8521A"
+          className="h-9 text-sm font-mono w-28"
+        />
+      </div>
+    </div>
+  );
+}
+
+function NumField({ label, hint, value, onChange, min, max, step }: {
+  label: string; hint?: string; value: number; onChange: (v: number) => void;
+  min?: number; max?: number; step?: number;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs">
+        {label}
+        {hint && <span className="ml-2 text-muted-foreground/60 font-normal">{hint}</span>}
+      </Label>
+      <Input
+        type="number"
+        value={value}
+        onChange={e => onChange(+e.target.value)}
+        className="h-9 text-sm font-mono"
+        min={min ?? 0}
+        max={max ?? 200}
+        step={step ?? 1}
+      />
+    </div>
+  );
+}
+
+function Accordion({ label, defaultOpen = false, children }: {
+  label: string; defaultOpen?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="border border-hunter-border rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-sm font-semibold text-foreground bg-hunter-elevated hover:bg-hunter-elevated/80 transition-colors"
+      >
+        {label}
+        <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", open && "rotate-180")} />
+      </button>
+      {open && <div className="p-4 space-y-4">{children}</div>}
     </div>
   );
 }
@@ -105,14 +158,13 @@ export function SettingsClient({ initialCompany, initialStyle, initialBanking }:
   const [tab, setTab] = useState<Tab>("company");
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-    { id: "company", label: "Company Info",    icon: Building2 },
-    { id: "style",   label: "Invoice Style",   icon: FileText  },
+    { id: "company", label: "Company Info",     icon: Building2 },
+    { id: "style",   label: "Invoice Style",    icon: FileText  },
     { id: "banking", label: "Banking Defaults", icon: Landmark  },
   ];
 
   return (
     <div className="rounded-xl border border-hunter-border bg-hunter-card overflow-hidden">
-      {/* Tab bar */}
       <div className="flex border-b border-hunter-border bg-hunter-elevated">
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
@@ -131,7 +183,6 @@ export function SettingsClient({ initialCompany, initialStyle, initialBanking }:
         ))}
       </div>
 
-      {/* Tab content */}
       <div className="p-6">
         {tab === "company" && <CompanyTab initial={initialCompany} />}
         {tab === "style"   && <StyleTab   initial={initialStyle}   />}
@@ -213,44 +264,27 @@ function CompanyTab({ initial }: { initial: CompanyInfo }) {
 
 // ─── Style Tab ────────────────────────────────────────────────────────────────
 
-function ColorField({ label, hint, value, onChange }: {
-  label: string; hint?: string; value: string; onChange: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label className="text-xs">{label}{hint && <span className="ml-2 text-muted-foreground/60 font-normal">{hint}</span>}</Label>
-      <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          className="w-9 h-9 rounded-md border border-hunter-border cursor-pointer bg-transparent p-0.5"
-        />
-        <Input
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder="#E8521A"
-          className="h-9 text-sm font-mono w-32"
-        />
-      </div>
-    </div>
-  );
-}
+const FONT_FAMILY_OPTIONS = [
+  { label: "Inter (default)", value: "Inter, -apple-system, BlinkMacSystemFont, sans-serif" },
+  { label: "Helvetica Neue",  value: "Helvetica Neue, Helvetica, Arial, sans-serif" },
+  { label: "Georgia (serif)", value: "Georgia, 'Times New Roman', Times, serif" },
+  { label: "System UI",       value: "system-ui, -apple-system, sans-serif" },
+];
 
 function StyleTab({ initial }: { initial: InvoiceStyle }) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved]   = useState(false);
-  const [values, setValues] = useState<InvoiceStyle>(initial);
+  const [v, setV] = useState<InvoiceStyle>(initial);
 
-  const set = (k: keyof InvoiceStyle) => (v: string | number) =>
-    setValues(prev => ({ ...prev, [k]: v }));
+  const set = <K extends keyof InvoiceStyle>(k: K) => (val: InvoiceStyle[K]) =>
+    setV(prev => ({ ...prev, [k]: val }));
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
     setSaved(false);
     try {
-      await saveInvoiceStyleSettings(values);
+      await saveInvoiceStyleSettings(v);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } finally {
@@ -259,50 +293,162 @@ function StyleTab({ initial }: { initial: InvoiceStyle }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
+    <form onSubmit={onSubmit} className="space-y-4">
 
-      {/* Colors */}
-      <div>
-        <SectionHeader label="Colors" hint="Hex codes — affects invoice print page" />
+      {/* ── Colors ───────────────────────────────────────────────────── */}
+      <Accordion label="Colors" defaultOpen>
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Brand &amp; text</p>
+          <div className="grid grid-cols-2 gap-4">
+            <ColorField label="Brand / Accent" hint="orange accents, section headers" value={v.brand} onChange={set("brand")} />
+            <ColorField label="Primary Text" value={v.textPrimary} onChange={set("textPrimary")} />
+            <ColorField label="Secondary Text" hint="descriptions, table" value={v.textSecondary} onChange={set("textSecondary")} />
+            <ColorField label="Muted Text" hint="labels, timestamps" value={v.textMuted} onChange={set("textMuted")} />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Surfaces &amp; borders</p>
+          <div className="grid grid-cols-2 gap-4">
+            <ColorField label="Border Color" value={v.borderColor} onChange={set("borderColor")} />
+            <ColorField label="Row Alt Background" value={v.rowAltBg} onChange={set("rowAltBg")} />
+            <ColorField label="Table Header Bg" value={v.tableHeaderBg} onChange={set("tableHeaderBg")} />
+            <ColorField label="Notes Background" value={v.notesBg} onChange={set("notesBg")} />
+            <ColorField label="Banking Card Bg" value={v.bankingCardBg} onChange={set("bankingCardBg")} />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Total Due box</p>
+          <div className="grid grid-cols-2 gap-4">
+            <ColorField label="Box Background" value={v.totalDueBg} onChange={set("totalDueBg")} />
+            <ColorField label="Label Text" hint={'color of "TOTAL DUE" text'} value={v.totalDueTextColor} onChange={set("totalDueTextColor")} />
+            <ColorField label="Amount Color" value={v.totalDueAmount} onChange={set("totalDueAmount")} />
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ── Logo ─────────────────────────────────────────────────────── */}
+      <Accordion label="Logo">
         <div className="grid grid-cols-2 gap-4">
-          <ColorField label="Brand Color" hint="Orange accents, section headers" value={values.brand} onChange={set("brand")} />
-          <ColorField label="Primary Text" value={values.textPrimary} onChange={set("textPrimary")} />
-          <ColorField label="Secondary Text" hint="Table, descriptions" value={values.textSecondary} onChange={set("textSecondary")} />
-          <ColorField label="Muted Text" hint="Labels, timestamps" value={values.textMuted} onChange={set("textMuted")} />
-          <ColorField label="TOTAL DUE Background" value={values.totalDueBg} onChange={set("totalDueBg")} />
-          <ColorField label="TOTAL DUE Amount" value={values.totalDueAmount} onChange={set("totalDueAmount")} />
-        </div>
-      </div>
-
-      {/* Sizes */}
-      <div>
-        <SectionHeader label="Sizes" hint="Pixel values — font sizes and logo height" />
-        <div className="grid grid-cols-3 gap-4">
-          {([
-            ["logoHeight",         "Logo Height (px)"],
-            ["fontInvoiceTitle",   "INVOICE title"],
-            ["fontSectionHeader",  "Section headers"],
-            ["fontCompanyName",    "Company name"],
-            ["fontCompanyDetail",  "Company detail"],
-            ["fontLabel",          "Row labels"],
-            ["fontValue",          "Row values"],
-            ["fontTableRow",       "Table rows"],
-            ["fontTotalDueLabel",  "TOTAL DUE label"],
-            ["fontTotalDueAmount", "TOTAL DUE amount"],
-          ] as [keyof InvoiceStyle, string][]).map(([k, label]) => (
-            <div key={k} className="space-y-1.5">
-              <Label className="text-xs">{label}</Label>
-              <Input
-                type="number"
-                value={values[k] as number}
-                onChange={e => set(k)(+e.target.value)}
-                className="h-9 text-sm font-mono"
-                min={6} max={200}
-              />
+          <NumField label="Logo Height (px)" value={v.logoHeight} onChange={set("logoHeight")} min={20} max={200} />
+          <div className="space-y-1.5">
+            <Label className="text-xs">Logo Position</Label>
+            <div className="flex gap-2 mt-1">
+              {(["left", "right"] as const).map(pos => (
+                <button
+                  key={pos}
+                  type="button"
+                  onClick={() => set("logoPosition")(pos)}
+                  className={cn(
+                    "flex-1 h-9 rounded-md border text-sm font-medium transition-colors capitalize",
+                    v.logoPosition === pos
+                      ? "border-[#E8521A] text-[#E8521A] bg-[#E8521A]/10"
+                      : "border-hunter-border text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {pos}
+                </button>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      </Accordion>
+
+      {/* ── Typography ───────────────────────────────────────────────── */}
+      <Accordion label="Typography">
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Font family</p>
+          <div className="space-y-1.5">
+            <Label className="text-xs">Font Family</Label>
+            <select
+              value={v.fontFamily}
+              onChange={e => set("fontFamily")(e.target.value)}
+              className="w-full h-9 rounded-md border border-hunter-border bg-background text-sm px-3 text-foreground"
+            >
+              {FONT_FAMILY_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+              {!FONT_FAMILY_OPTIONS.find(o => o.value === v.fontFamily) && (
+                <option value={v.fontFamily}>{v.fontFamily}</option>
+              )}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Header sizes</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumField label="INVOICE title"     value={v.fontInvoiceTitle}  onChange={set("fontInvoiceTitle")}  min={16} max={72} />
+            <NumField label="Invoice number"    value={v.fontInvoiceNumber} onChange={set("fontInvoiceNumber")} min={8}  max={24} />
+            <NumField label="Status badge"      value={v.fontStatusBadge}   onChange={set("fontStatusBadge")}   min={7}  max={16} />
+            <NumField label="Section headers"   value={v.fontSectionHeader} onChange={set("fontSectionHeader")} min={8}  max={32} />
+            <NumField label="Company name"      value={v.fontCompanyName}   onChange={set("fontCompanyName")}   min={8}  max={32} />
+            <NumField label="Company detail"    value={v.fontCompanyDetail} onChange={set("fontCompanyDetail")} min={6}  max={20} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Invoice details &amp; Bill To</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumField label="Row labels"         value={v.fontLabel}       onChange={set("fontLabel")}       min={8} max={20} />
+            <NumField label="Row values"         value={v.fontValue}       onChange={set("fontValue")}       min={8} max={20} />
+            <NumField label="Client name"        value={v.fontClientName}  onChange={set("fontClientName")}  min={8} max={28} />
+            <NumField label="Client detail"      value={v.fontClientDetail} onChange={set("fontClientDetail")} min={8} max={20} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Table</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumField label="Table header"       value={v.fontTableHeader} onChange={set("fontTableHeader")} min={7} max={16} />
+            <NumField label="Table rows"         value={v.fontTableRow}    onChange={set("fontTableRow")}    min={8} max={20} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Totals</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumField label="Subtotal rows"      value={v.fontTotalLabel}      onChange={set("fontTotalLabel")}      min={8} max={20} />
+            <NumField label="TOTAL DUE label"    value={v.fontTotalDueLabel}   onChange={set("fontTotalDueLabel")}   min={8} max={24} />
+            <NumField label="TOTAL DUE amount"   value={v.fontTotalDueAmount}  onChange={set("fontTotalDueAmount")}  min={12} max={48} />
+          </div>
+        </div>
+
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Notes &amp; Banking</p>
+          <div className="grid grid-cols-3 gap-3">
+            <NumField label="Notes text"         value={v.fontNotes}         onChange={set("fontNotes")}         min={8} max={18} />
+            <NumField label="Banking section hdr" value={v.fontBankingHeader} onChange={set("fontBankingHeader")} min={7} max={16} />
+            <NumField label="Banking rows"        value={v.fontBankingLabel}  onChange={set("fontBankingLabel")}  min={8} max={18} />
+            <NumField label="Footer text"         value={v.fontFooter}        onChange={set("fontFooter")}        min={7} max={16} />
+          </div>
+        </div>
+      </Accordion>
+
+      {/* ── Spacing & Layout ─────────────────────────────────────────── */}
+      <Accordion label="Spacing &amp; Layout">
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Page padding</p>
+          <div className="grid grid-cols-2 gap-3">
+            <NumField label="Vertical padding (px)"   value={v.pagePaddingV} onChange={set("pagePaddingV")} min={16} max={96} />
+            <NumField label="Horizontal padding (px)" value={v.pagePaddingH} onChange={set("pagePaddingH")} min={16} max={96} />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Section &amp; table gaps</p>
+          <div className="grid grid-cols-2 gap-3">
+            <NumField label="Section gap (px)"        value={v.sectionGap}       onChange={set("sectionGap")}       min={8}  max={80} />
+            <NumField label="Table row pad V (px)"    value={v.tableRowPaddingV} onChange={set("tableRowPaddingV")} min={4}  max={32} />
+            <NumField label="Table row pad H (px)"    value={v.tableRowPaddingH} onChange={set("tableRowPaddingH")} min={4}  max={32} />
+          </div>
+        </div>
+        <div>
+          <p className="text-xs text-muted-foreground mb-3">Typography rhythm</p>
+          <div className="grid grid-cols-2 gap-3">
+            <NumField label="Line height"   hint="e.g. 1.65" value={v.lineHeight}   onChange={set("lineHeight")}   min={1}  max={3}  step={0.05} />
+            <NumField label="Border radius" hint="px"        value={v.borderRadius} onChange={set("borderRadius")} min={0}  max={20} />
+          </div>
+        </div>
+      </Accordion>
 
       <div className="flex items-center justify-between pt-2">
         {saved ? <SavedBadge /> : <span />}
@@ -331,7 +477,6 @@ function BankingTab({ initial }: { initial: BankingInfo }) {
     setSaved(false);
     try {
       await saveBankingSettings(data);
-      // Also sync to localStorage so InvoiceFormModal picks it up
       if (typeof window !== "undefined") {
         localStorage.setItem("h3dv_banking_defaults", JSON.stringify(data));
       }
@@ -348,7 +493,6 @@ function BankingTab({ initial }: { initial: BankingInfo }) {
         Defaults for new invoices. Synced to localStorage so the Invoice form auto-fills.
       </p>
 
-      {/* Receiving Bank */}
       <div>
         <SectionHeader label="Receiving Bank" />
         <div className="space-y-3">
@@ -364,7 +508,6 @@ function BankingTab({ initial }: { initial: BankingInfo }) {
         </div>
       </div>
 
-      {/* Account Holder */}
       <div>
         <SectionHeader label="Account Holder" />
         <div className="grid grid-cols-2 gap-3">
