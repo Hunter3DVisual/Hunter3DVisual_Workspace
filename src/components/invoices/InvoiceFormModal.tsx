@@ -151,6 +151,7 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
   const [clients, setClients] = useState<ClientSelectOption[]>([]);
   const [projects, setProjects] = useState<ProjectOption[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [prefix, setPrefix] = useState("");
   const [catCounters, setCatCounters] = useState<Record<string, number>>({});
   const [bankOpen, setBankOpen] = useState(false);
@@ -207,6 +208,7 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
   // Load clients, projects, banking on open
   useEffect(() => {
     if (!open) return;
+    setSaveError(null);
     getClientsForSelect().then(setClients);
     getProjectsForSelect().then(setProjects);
     setBanking(loadBanking());
@@ -222,11 +224,27 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
       setCatCounters({});
       setPrefix("");
     } else {
+      // Always reset form with latest invoice data when edit modal opens
+      reset({
+        number:      invoice.number,
+        contractRef: (invoice as any).contractRef ?? "",
+        clientId:    invoice.clientId,
+        projectId:   invoice.projectId ?? undefined,
+        dueDate:     new Date(invoice.dueDate).toISOString().split("T")[0],
+        currency:    invoice.currency ?? "USD",
+        taxPct:      invoice.tax && invoice.subtotal > 0
+          ? Math.round((invoice.tax / invoice.subtotal) * 100) : 0,
+        discount:    invoice.discount ?? 0,
+        notes:       invoice.notes ?? "",
+        terms:       invoice.terms ?? "",
+        items:       existingItems,
+      });
       const initialCounters: Record<string, number> = {};
       existingItems.forEach((it) => {
         if (it.category) initialCounters[it.category] = (initialCounters[it.category] ?? 0) + 1;
       });
       setCatCounters(initialCounters);
+      setPrefix("");
     }
   }, [open]);
 
@@ -293,6 +311,9 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
       onOpenChange(false);
     } catch (e) {
       console.error(e);
+      setSaveError(
+        e instanceof Error ? e.message : "Failed to save invoice. Please try again."
+      );
     } finally {
       setSaving(false);
     }
@@ -660,6 +681,12 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
               </div>
             )}
           </div>
+
+          {saveError && (
+            <div className="rounded-md bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs text-red-400">
+              ⚠ {saveError}
+            </div>
+          )}
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
