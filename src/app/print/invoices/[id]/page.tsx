@@ -16,15 +16,6 @@ const CAT_LABEL: Record<string, string> = {
   CUSTOM:    "Custom",
 };
 
-const CAT_COLOR: Record<string, string> = {
-  EXTERIOR:  "#0ea5e9",
-  INTERIOR:  "#8b5cf6",
-  IMAGE_360: "#f59e0b",
-  TOUR_360:  "#10b981",
-  ANIMATION: "#f43f5e",
-  MODEL_3D:  "#6366f1",
-  CUSTOM:    "#6b7280",
-};
 
 const STATUS_COLOR: Record<string, string> = {
   DRAFT:     "#6b7280",

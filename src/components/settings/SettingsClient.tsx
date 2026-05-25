@@ -7,7 +7,7 @@ import { z } from "zod";
 import {
   Loader2, Building2, FileText, Landmark,
   CheckCircle2, ChevronDown,
-  Bold, Italic, Underline,
+  Italic, Underline,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
