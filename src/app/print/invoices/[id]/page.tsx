@@ -412,7 +412,6 @@ export default async function InvoicePrintPage({ params }: Props) {
           </thead>
           <tbody>
             {items.map((item, i) => {
-              const catColor = item.category ? CAT_COLOR[item.category] : "#6b7280";
               const catLabel = item.category ? CAT_LABEL[item.category] : "";
               return (
                 <tr key={i} style={{ borderBottom: `1px solid #f3f4f6`, background: i % 2 === 0 ? "#fff" : style.rowAltBg }}>
@@ -420,9 +419,9 @@ export default async function InvoicePrintPage({ params }: Props) {
                     {catLabel && (
                       <span style={{
                         display:      "inline-block",
-                        background:   catColor + "18",
-                        color:        catColor,
-                        border:       `1px solid ${catColor}40`,
+                        background:   "#6b728018",
+                        color:        "#6b7280",
+                        border:       `1px solid #6b728040`,
                         borderRadius: r - 2 > 0 ? r - 2 : 2,
                         padding:      "2px 7px",
                         fontSize:     10,
