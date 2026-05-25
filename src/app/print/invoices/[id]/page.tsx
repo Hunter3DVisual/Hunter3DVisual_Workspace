@@ -258,26 +258,49 @@ export default async function InvoicePrintPage({ params }: Props) {
               ...((invoice as any).contractRef ? [["Contract Ref", (invoice as any).contractRef]] : []),
             ] as [string, string][]).map(([label, value]) => (
               <div key={label} style={{
-                display:        "flex",
-                justifyContent: "space-between",
-                fontSize:       style.fontLabel,
-                marginBottom:   8,
-                gap:            16,
+                display:              "grid",
+                gridTemplateColumns:  "110px 14px 1fr",
+                alignItems:           "baseline",
+                fontSize:             style.fontLabel,
+                marginBottom:         8,
               }}>
                 <span style={{
-                  color:      style.textMuted,
-                  fontWeight: style.fontWeightLabel,
-                  fontStyle:  style.fontStyleLabel,
+                  color:       style.textMuted,
+                  fontWeight:  style.fontWeightLabel,
+                  fontStyle:   style.fontStyleLabel,
+                  textAlign:   "left",
+                  whiteSpace:  "nowrap",
                 }}>{label}</span>
+                <span style={{ color: style.textMuted, textAlign: "center" }}>:</span>
                 <span style={{
-                  fontWeight:     style.fontWeightValue,
-                  fontStyle:      style.fontStyleValue,
-                  color:          style.textPrimary,
-                  fontFamily:     label === "Contract Ref" ? "monospace" : "inherit",
-                  textAlign:      "right",
+                  fontWeight:  style.fontWeightValue,
+                  fontStyle:   style.fontStyleValue,
+                  color:       style.textPrimary,
+                  fontFamily:  label === "Contract Ref" ? "monospace" : "inherit",
+                  paddingLeft: 6,
                 }}>{value}</span>
               </div>
             ))}
+
+            {/* Project reference — moved from Bill To, separated with thin rule */}
+            {invoice.project && (
+              <div style={{
+                display:             "grid",
+                gridTemplateColumns: "110px 14px 1fr",
+                alignItems:          "baseline",
+                fontSize:            style.fontLabel,
+                marginTop:           8,
+                paddingTop:          8,
+                borderTop:           `1px solid ${style.borderColor}`,
+              }}>
+                <span style={{ color: style.textMuted, textAlign: "left", whiteSpace: "nowrap" }}>Project</span>
+                <span style={{ color: style.textMuted, textAlign: "center" }}>:</span>
+                <span style={{ paddingLeft: 6, color: style.textPrimary }}>
+                  <span style={{ fontFamily: "monospace", color: "#9ca3af", marginRight: 6 }}>{invoice.project.code}</span>
+                  {invoice.project.name}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Bill To */}
@@ -367,21 +390,6 @@ export default async function InvoicePrintPage({ params }: Props) {
               </div>
             )}
 
-            {/* Project reference — separated with thin rule */}
-            {invoice.project && (
-              <div style={{
-                fontSize:    style.fontClientDetail,
-                color:       style.textMuted,
-                marginTop:   8,
-                paddingTop:  8,
-                borderTop:   `1px solid ${style.borderColor}`,
-              }}>
-                <span style={{ fontFamily: "monospace", color: "#9ca3af", marginRight: 6 }}>
-                  {invoice.project.code}
-                </span>
-                {invoice.project.name}
-              </div>
-            )}
           </div>
         </div>
 
