@@ -559,30 +559,42 @@ export default async function InvoicePrintPage({ params }: Props) {
                     return (
                       <div key={i} style={{
                         display:             "grid",
-                        gridTemplateColumns: `${style.bankingLabelWidth}px 1fr`,
+                        gridTemplateColumns: `${style.bankingLabelWidth}px 14px 1fr`,
                         alignItems:          "baseline",
                         paddingTop:          style.bankingRowGap,
                         paddingBottom:       style.bankingRowGap,
                         borderBottom:        isLast ? "none" : "1px solid rgba(0,0,0,0.05)",
                       }}>
-                        {/* Label — fixed width, colon-terminated */}
+                        {/* Label — right-aligned so all labels end at the same x */}
                         <span style={{
-                          fontSize:   style.fontBankingLabel,
-                          fontWeight: style.fontWeightBankingLabel,
-                          fontStyle:  style.fontStyleBankingLabel,
-                          color:      style.colorBankingLabel,
-                          whiteSpace: "nowrap",
+                          fontSize:     style.fontBankingLabel,
+                          fontWeight:   style.fontWeightBankingLabel,
+                          fontStyle:    style.fontStyleBankingLabel,
+                          color:        style.colorBankingLabel,
+                          textAlign:    "right",
+                          whiteSpace:   "nowrap",
+                          paddingRight: 2,
                         }}>
-                          {key}:
+                          {key}
+                        </span>
+
+                        {/* Colon — separate fixed-width column → always same vertical line */}
+                        <span style={{
+                          fontSize:  style.fontBankingLabel,
+                          color:     style.colorBankingLabel,
+                          textAlign: "center",
+                        }}>
+                          :
                         </span>
 
                         {/* Value — always starts at the same x position */}
                         <span style={{
-                          fontSize:   style.fontBankingValue,
-                          fontWeight: style.fontWeightBankingValue,
-                          fontStyle:  style.fontStyleBankingValue,
-                          color:      style.colorBankingValue,
-                          fontFamily: isMono ? "monospace" : "inherit",
+                          fontSize:    style.fontBankingValue,
+                          fontWeight:  style.fontWeightBankingValue,
+                          fontStyle:   style.fontStyleBankingValue,
+                          color:       style.colorBankingValue,
+                          fontFamily:  isMono ? "monospace" : "inherit",
+                          paddingLeft: 6,
                         }}>
                           {val}
                         </span>
