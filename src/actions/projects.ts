@@ -1,10 +1,31 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { generateProjectCode } from "@/lib/utils";
 import type { ProjectStatus } from "@prisma/client";
 import type { CreateProjectInput, UpdateProjectInput, ProjectFilters } from "@/types/projects";
+
+/**
+ * Get the DB User row for the current Clerk session, creating it on first sign-in.
+ * The User model requires clerkId + email + name. We upsert so there's never a
+ * "User not found" hard failure — no Clerk webhook sync needed.
+ */
+async function requireDbUser(userId: string) {
+  const existing = await db.user.findUnique({ where: { clerkId: userId } });
+  if (existing) return existing;
+
+  // First time this user hits a write action — seed from Clerk profile
+  const clerk = await currentUser();
+  return db.user.create({
+    data: {
+      clerkId: userId,
+      email:   clerk?.emailAddresses[0]?.emailAddress ?? `${userId}@noreply.local`,
+      name:    [clerk?.firstName, clerk?.lastName].filter(Boolean).join(" ") || "Studio Owner",
+      avatar:  clerk?.imageUrl ?? undefined,
+    },
+  });
+}
 
 export async function getProjects(filters: ProjectFilters = {}) {
   const { search, status, clientId, sortBy = "createdAt", sortDir = "desc" } = filters;
@@ -33,8 +54,7 @@ export async function createProject(input: CreateProjectInput) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
 
-  const user = await db.user.findUnique({ where: { clerkId: userId } });
-  if (!user) throw new Error("User not found");
+  const user = await requireDbUser(userId);
 
   return db.project.create({
     data: {
