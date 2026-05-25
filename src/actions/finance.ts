@@ -76,29 +76,42 @@ export async function getInvoices(filters: InvoiceFilters = {}) {
   });
 }
 
-export async function createInvoice(input: CreateInvoiceInput) {
+export async function createInvoice(
+  input: CreateInvoiceInput
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
   const { userId } = await auth();
-  if (!userId) throw new Error("Unauthorized");
+  if (!userId) return { ok: false, error: "Unauthorized" };
 
   const { number, contractRef, clientId, projectId, dueDate, subtotal, tax, discount, total, currency, notes, terms, items } = input;
 
-  return db.invoice.create({
-    data: {
-      number,
-      contractRef:  contractRef  || undefined,
-      clientId,
-      projectId:    projectId    || undefined,
-      dueDate:      new Date(dueDate),
-      subtotal,
-      tax:          tax          ?? 0,
-      discount:     discount     ?? 0,
-      total,
-      currency:     currency     || "USD",
-      notes:        notes        || undefined,
-      terms:        terms        || undefined,
-      items,
-    },
-  });
+  try {
+    const invoice = await db.invoice.create({
+      data: {
+        number,
+        contractRef:  contractRef  ?? undefined,
+        clientId,
+        projectId:    projectId    ?? undefined,
+        dueDate:      new Date(dueDate),
+        subtotal,
+        tax:          tax          ?? 0,
+        discount:     discount     ?? 0,
+        total,
+        currency:     currency     || "USD",
+        notes:        notes        ?? undefined,
+        terms:        terms        ?? undefined,
+        items,
+      },
+    });
+    return { ok: true, id: invoice.id };
+  } catch (e: any) {
+    // Return real error details instead of throwing — bypasses Next.js production sanitization
+    const detail = [e?.code, e?.meta?.target, e?.message]
+      .filter(Boolean)
+      .join(" | ")
+      .slice(0, 400);
+    console.error("[createInvoice] Prisma error:", e?.code, e?.message);
+    return { ok: false, error: detail };
+  }
 }
 
 export async function getInvoiceById(id: string) {

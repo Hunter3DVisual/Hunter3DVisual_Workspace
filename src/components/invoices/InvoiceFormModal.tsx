@@ -318,7 +318,8 @@ export function InvoiceFormModal({ open, onOpenChange, invoice }: Props) {
         const result = await updateInvoice(invoice.id, payload);
         if (!result.ok) throw new Error(result.error);
       } else {
-        await createInvoice(payload);
+        const result = await createInvoice(payload);
+        if (!result.ok) throw new Error(result.error);
       }
 
       router.refresh();
