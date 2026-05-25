@@ -58,6 +58,7 @@ export type InvoiceStyle = {
   fontInvoiceNumber: number;
 
   // ── Bill To (client block) ────────────────────────────────────────────────
+  clientTaxLabel:         string;  // label for Tax ID field — e.g. "Tax ID / VAT", "VAT", "ABN"
   fontClientName:         number;
   fontWeightClientName:   string;
   fontStyleClientName:    string;

@@ -13,16 +13,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button }   from "@/components/ui/button";
+import { Input }    from "@/components/ui/input";
+import { Label }    from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { createClient, updateClient } from "@/actions/clients";
 import type { ClientWithStats } from "@/types/clients";
@@ -30,96 +26,84 @@ import type { ClientWithStats } from "@/types/clients";
 const CLIENT_STATUSES = ["LEAD", "ACTIVE", "VIP", "INACTIVE"] as const;
 
 const schema = z.object({
-  name: z.string().min(1, "Bắt buộc"),
-  company: z.string().optional(),
-  email: z.string().email("Email không hợp lệ"),
-  phone: z.string().optional(),
-  whatsapp: z.string().optional(),
-  status: z.enum(["LEAD", "ACTIVE", "VIP", "INACTIVE", "ARCHIVED"]).default("LEAD"),
-  country: z.string().optional(),
-  city: z.string().optional(),
-  address: z.string().optional(),
+  name:           z.string().min(1, "Bắt buộc"),
+  company:        z.string().optional(),
+  email:          z.string().email("Email không hợp lệ"),
+  phone:          z.string().optional(),
+  whatsapp:       z.string().optional(),
+  website:        z.string().optional(),
+  taxCode:        z.string().optional(),
+  status:         z.enum(["LEAD", "ACTIVE", "VIP", "INACTIVE", "ARCHIVED"]).default("LEAD"),
+  country:        z.string().optional(),
+  city:           z.string().optional(),
+  address:        z.string().optional(),
   representative: z.string().optional(),
-  position: z.string().optional(),
-  notes: z.string().optional(),
+  position:       z.string().optional(),
+  notes:          z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
 
+function toDefaults(client?: ClientWithStats): FormValues {
+  if (!client) return { status: "LEAD" } as FormValues;
+  return {
+    name:           client.name,
+    company:        client.company        ?? undefined,
+    email:          client.email,
+    phone:          client.phone          ?? undefined,
+    whatsapp:       client.whatsapp       ?? undefined,
+    website:        client.website        ?? undefined,
+    taxCode:        client.taxCode        ?? undefined,
+    status:         client.status,
+    country:        client.country        ?? undefined,
+    city:           client.city           ?? undefined,
+    address:        client.address        ?? undefined,
+    representative: client.representative ?? undefined,
+    position:       client.position       ?? undefined,
+    notes:          client.notes          ?? undefined,
+  };
+}
+
 interface Props {
-  open: boolean;
+  open:         boolean;
   onOpenChange: (v: boolean) => void;
-  client?: ClientWithStats;
+  client?:      ClientWithStats;
 }
 
 export function ClientFormModal({ open, onOpenChange, client }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: client
-      ? {
-          name: client.name,
-          company: client.company ?? undefined,
-          email: client.email,
-          phone: client.phone ?? undefined,
-          whatsapp: client.whatsapp ?? undefined,
-          status: client.status,
-          country: client.country ?? undefined,
-          city: client.city ?? undefined,
-          address: client.address ?? undefined,
-          representative: client.representative ?? undefined,
-          position: client.position ?? undefined,
-          notes: client.notes ?? undefined,
-        }
-      : { status: "LEAD" },
+  const { register, handleSubmit, control, reset, formState: { errors } } = useForm<FormValues>({
+    resolver:      zodResolver(schema),
+    defaultValues: toDefaults(client),
   });
 
   useEffect(() => {
-    if (open) {
-      if (!client) reset({ status: "LEAD" });
-      else
-        reset({
-          name: client.name,
-          company: client.company ?? undefined,
-          email: client.email,
-          phone: client.phone ?? undefined,
-          whatsapp: client.whatsapp ?? undefined,
-          status: client.status,
-          country: client.country ?? undefined,
-          city: client.city ?? undefined,
-          address: client.address ?? undefined,
-          representative: client.representative ?? undefined,
-          position: client.position ?? undefined,
-          notes: client.notes ?? undefined,
-        });
-    }
+    if (open) reset(toDefaults(client));
   }, [open, client, reset]);
 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      if (client) {
-        await updateClient(client.id, values);
-      } else {
-        await createClient({
-          name: values.name,
-          company: values.company || undefined,
-          email: values.email,
-          phone: values.phone || undefined,
-          country: values.country || undefined,
-          city: values.city || undefined,
-          notes: values.notes || undefined,
-        });
-      }
-
+      const payload = {
+        name:           values.name,
+        company:        values.company        || undefined,
+        email:          values.email,
+        phone:          values.phone          || undefined,
+        whatsapp:       values.whatsapp       || undefined,
+        website:        values.website        || undefined,
+        taxCode:        values.taxCode        || undefined,
+        status:         values.status,
+        country:        values.country        || undefined,
+        city:           values.city           || undefined,
+        address:        values.address        || undefined,
+        representative: values.representative || undefined,
+        position:       values.position       || undefined,
+        notes:          values.notes          || undefined,
+      };
+      if (client) await updateClient(client.id, payload);
+      else        await createClient(payload);
       router.refresh();
       onOpenChange(false);
     } catch {
@@ -136,141 +120,100 @@ export function ClientFormModal({ open, onOpenChange, client }: Props) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+
+          {/* ── Identity ─────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cl-name">Name *</Label>
-              <Input
-                id="cl-name"
-                {...register("name")}
-                placeholder="Nguyen Van A"
-              />
-              {errors.name && (
-                <p className="text-xs text-red-400">{errors.name.message}</p>
-              )}
+              <Input id="cl-name" {...register("name")} placeholder="Nguyen Van A" />
+              {errors.name && <p className="text-xs text-red-400">{errors.name.message}</p>}
             </div>
-
             <div className="space-y-1.5">
               <Label htmlFor="cl-company">Company</Label>
-              <Input
-                id="cl-company"
-                {...register("company")}
-                placeholder="ABC Corp"
-              />
+              <Input id="cl-company" {...register("company")} placeholder="ABC Corp" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cl-email">Email *</Label>
-              <Input
-                id="cl-email"
-                type="email"
-                {...register("email")}
-                placeholder="email@example.com"
-              />
-              {errors.email && (
-                <p className="text-xs text-red-400">{errors.email.message}</p>
-              )}
+              <Input id="cl-email" type="email" {...register("email")} placeholder="email@example.com" />
+              {errors.email && <p className="text-xs text-red-400">{errors.email.message}</p>}
             </div>
-
             <div className="space-y-1.5">
               <Label>Status</Label>
-              <Controller
-                name="status"
-                control={control}
-                render={({ field }) => (
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CLIENT_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s.charAt(0) + s.slice(1).toLowerCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
+              <Controller name="status" control={control} render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {CLIENT_STATUSES.map(s => (
+                      <SelectItem key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )} />
             </div>
           </div>
 
+          {/* ── Contact ──────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cl-phone">Phone</Label>
-              <Input
-                id="cl-phone"
-                {...register("phone")}
-                placeholder="+84 xxx xxx xxx"
-              />
+              <Input id="cl-phone" {...register("phone")} placeholder="+84 xxx xxx xxx" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="cl-whatsapp">WhatsApp</Label>
-              <Input
-                id="cl-whatsapp"
-                {...register("whatsapp")}
-                placeholder="+84 xxx xxx xxx"
-              />
+              <Input id="cl-whatsapp" {...register("whatsapp")} placeholder="+84 xxx xxx xxx" />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="cl-rep">Representative</Label>
-              <Input
-                id="cl-rep"
-                {...register("representative")}
-                placeholder="Contact person"
-              />
+              <Label htmlFor="cl-website">Website</Label>
+              <Input id="cl-website" {...register("website")} placeholder="https://example.com" />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cl-pos">Position</Label>
-              <Input
-                id="cl-pos"
-                {...register("position")}
-                placeholder="CEO / PM / ..."
-              />
+              <Label htmlFor="cl-taxcode">Tax ID / VAT</Label>
+              <Input id="cl-taxcode" {...register("taxCode")} placeholder="MST: 0123456789" className="font-mono" />
             </div>
           </div>
 
+          {/* ── Address ──────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="cl-country">Country</Label>
-              <Input
-                id="cl-country"
-                {...register("country")}
-                placeholder="Vietnam"
-              />
+              <Input id="cl-country" {...register("country")} placeholder="Vietnam" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="cl-city">City</Label>
-              <Input
-                id="cl-city"
-                {...register("city")}
-                placeholder="Ho Chi Minh City"
-              />
+              <Input id="cl-city" {...register("city")} placeholder="Ho Chi Minh City" />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="cl-address">Address</Label>
+            <Input id="cl-address" {...register("address")} placeholder="Street address" />
+          </div>
+
+          {/* ── Internal ─────────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="cl-rep">Representative</Label>
+              <Input id="cl-rep" {...register("representative")} placeholder="Contact person" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="cl-pos">Position</Label>
+              <Input id="cl-pos" {...register("position")} placeholder="CEO / PM / ..." />
             </div>
           </div>
 
           <div className="space-y-1.5">
             <Label htmlFor="cl-notes">Notes</Label>
-            <Textarea
-              id="cl-notes"
-              {...register("notes")}
-              placeholder="Internal notes..."
-              rows={3}
-            />
+            <Textarea id="cl-notes" {...register("notes")} placeholder="Internal notes..." rows={3} />
           </div>
 
           <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" disabled={loading}>
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {client ? "Save Changes" : "Create Client"}

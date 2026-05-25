@@ -283,38 +283,102 @@ export default async function InvoicePrintPage({ params }: Props) {
           {/* Bill To */}
           <div>
             <div style={{
-              fontSize:   style.fontSectionHeader,
-              fontWeight: 700,
-              color:      style.brand,
-              marginBottom: 14,
+              fontSize:      style.fontSectionHeader,
+              fontWeight:    700,
+              color:         style.brand,
+              marginBottom:  14,
               letterSpacing: "0.01em",
             }}>
               Bill To
             </div>
+
+            {/* Client name — primary element */}
             <div style={{
-              fontSize:        style.fontClientName,
-              fontWeight:      style.fontWeightClientName,
-              fontStyle:       style.fontStyleClientName,
-              textDecoration:  style.textDecoClientName,
-              color:           style.textPrimary,
-              marginBottom:    4,
+              fontSize:       style.fontClientName,
+              fontWeight:     style.fontWeightClientName,
+              fontStyle:      style.fontStyleClientName,
+              textDecoration: style.textDecoClientName,
+              color:          style.textPrimary,
+              marginBottom:   3,
+              lineHeight:     1.3,
             }}>
               {invoice.client.name}
             </div>
+
+            {/* Company */}
             {invoice.client.company && (
               <div style={{
                 fontSize:   style.fontClientDetail,
                 fontWeight: style.fontWeightClientDetail,
                 fontStyle:  style.fontStyleClientDetail,
                 color:      style.textSecondary,
-                marginBottom: 2,
+                marginBottom: 1,
               }}>
                 {invoice.client.company}
               </div>
             )}
+
+            {/* Address block */}
+            {(invoice.client.address || invoice.client.city || invoice.client.country) && (
+              <div style={{ marginTop: 6 }}>
+                {invoice.client.address && (
+                  <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, lineHeight: 1.5 }}>
+                    {invoice.client.address}
+                  </div>
+                )}
+                {(invoice.client.city || invoice.client.country) && (
+                  <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, lineHeight: 1.5 }}>
+                    {[invoice.client.city, invoice.client.country].filter(Boolean).join(", ")}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Phone */}
+            {invoice.client.phone && (
+              <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, marginTop: 5 }}>
+                {invoice.client.phone}
+              </div>
+            )}
+
+            {/* Website — clickable link in digital view */}
+            {invoice.client.website && (() => {
+              const href = invoice.client.website!.startsWith("http")
+                ? invoice.client.website!
+                : `https://${invoice.client.website}`;
+              return (
+                <div style={{ marginTop: 2 }}>
+                  <a href={href} style={{
+                    fontSize:       style.fontClientDetail,
+                    color:          style.brand,
+                    textDecoration: "none",
+                  }}>
+                    {invoice.client.website}
+                  </a>
+                </div>
+              );
+            })()}
+
+            {/* Tax ID / VAT */}
+            {invoice.client.taxCode && (
+              <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, marginTop: 2 }}>
+                <span style={{ color: style.textSecondary, fontWeight: 500 }}>{style.clientTaxLabel}:</span>
+                {" "}{invoice.client.taxCode}
+              </div>
+            )}
+
+            {/* Project reference — separated with thin rule */}
             {invoice.project && (
-              <div style={{ fontSize: style.fontClientDetail, color: style.textMuted, marginTop: 6 }}>
-                <span style={{ fontFamily: "monospace", marginRight: 6, color: "#9ca3af" }}>{invoice.project.code}</span>
+              <div style={{
+                fontSize:    style.fontClientDetail,
+                color:       style.textMuted,
+                marginTop:   8,
+                paddingTop:  8,
+                borderTop:   `1px solid ${style.borderColor}`,
+              }}>
+                <span style={{ fontFamily: "monospace", color: "#9ca3af", marginRight: 6 }}>
+                  {invoice.project.code}
+                </span>
                 {invoice.project.name}
               </div>
             )}

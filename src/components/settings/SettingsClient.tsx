@@ -482,6 +482,15 @@ function StyleTab({ initial }: { initial: InvoiceStyle }) {
         <div>
           <p className="text-xs text-muted-foreground mb-2">Bill To (client)</p>
           <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs">Tax ID label <span className="text-muted-foreground/60 font-normal ml-1">flexible — Tax ID / VAT / ABN / GSTIN…</span></Label>
+              <Input
+                value={v.clientTaxLabel}
+                onChange={e => set("clientTaxLabel")(e.target.value)}
+                placeholder="Tax ID / VAT"
+                className="h-9 text-sm w-56"
+              />
+            </div>
             <TypoRow
               label="Client Name"
               size={v.fontClientName}   onSize={set("fontClientName")}

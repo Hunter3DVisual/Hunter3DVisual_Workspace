@@ -66,11 +66,12 @@ const DEFAULT_STYLE: InvoiceStyle = {
   fontInvoiceNumber: 14,
 
   // Bill To (client)
+  clientTaxLabel:         "Tax ID / VAT",
   fontClientName:         16,
   fontWeightClientName:   "700",
   fontStyleClientName:    "normal",
   textDecoClientName:     "none",
-  fontClientDetail:       13,
+  fontClientDetail:       12,
   fontWeightClientDetail: "400",
   fontStyleClientDetail:  "normal",
 

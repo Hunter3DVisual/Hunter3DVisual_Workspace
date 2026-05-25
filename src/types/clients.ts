@@ -8,40 +8,41 @@ export type ClientWithStats = Client & {
 };
 
 export type CreateClientInput = {
-  name: string;
-  company?: string;
-  email: string;
-  phone?: string;
-  country?: string;
-  city?: string;
-  notes?: string;
-  tags?: string[];
+  name:           string;
+  company?:       string;
+  email:          string;
+  phone?:         string;
+  whatsapp?:      string;
+  status?:        ClientStatus;
+  country?:       string;
+  city?:          string;
+  address?:       string;
+  website?:       string;
+  taxCode?:       string;
+  representative?: string;
+  position?:      string;
+  notes?:         string;
+  tags?:          string[];
 };
 
-export type UpdateClientInput = Partial<CreateClientInput> & {
-  status?: ClientStatus;
-  representative?: string;
-  position?: string;
-  whatsapp?: string;
-  address?: string;
-};
+export type UpdateClientInput = Partial<CreateClientInput>;
 
 export type ClientSelectOption = {
-  id: string;
-  name: string;
+  id:      string;
+  name:    string;
   company: string | null;
 };
 
 export type ClientDetail = Client & {
-  projects: (Project & { _count: { tasks: number } })[];
-  invoices: Invoice[];
-  contacts: Contact[];
-  _count: { projects: number };
+  projects:  (Project & { _count: { tasks: number } })[];
+  invoices:  Invoice[];
+  contacts:  Contact[];
+  _count:    { projects: number };
 };
 
 export type ClientFilters = {
-  search?: string;
-  status?: ClientStatus;
-  sortBy?: "name" | "createdAt" | "company";
+  search?:  string;
+  status?:  ClientStatus;
+  sortBy?:  "name" | "createdAt" | "company";
   sortDir?: "asc" | "desc";
 };
