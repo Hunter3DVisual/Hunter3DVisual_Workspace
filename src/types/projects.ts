@@ -8,26 +8,32 @@ export type ProjectWithClient = Project & {
 };
 
 export type CreateProjectInput = {
-  name: string;
-  clientId?: string;
-  description?: string;
-  deadline?: Date;
-  budget?: number;
-  currency?: string;
-  tags?: string[];
+  name:        string;
+  clientId?:   string;
+  description: string | null;   // null = explicitly clear the field
+  deadline:    string | null;   // ISO string "YYYY-MM-DD" or null
+  budget?:     number;
+  currency?:   string;
+  tags?:       string[];
 };
 
 export type ProjectFilters = {
-  search?: string;
-  status?: ProjectStatus;
+  search?:   string;
+  status?:   ProjectStatus;
   clientId?: string;
-  sortBy?: "name" | "createdAt" | "deadline" | "progress";
-  sortDir?: "asc" | "desc";
+  sortBy?:   "name" | "createdAt" | "deadline" | "progress";
+  sortDir?:  "asc" | "desc";
 };
 
-export type UpdateProjectInput = Partial<CreateProjectInput> & {
-  status?: ProjectStatus;
-  progress?: number;
+export type UpdateProjectInput = {
+  name?:        string;
+  clientId?:    string | null;
+  description?: string | null;  // null = explicitly clear
+  deadline?:    string | null;  // ISO string or null
+  budget?:      number;
+  currency?:    string;
+  status?:      ProjectStatus;
+  progress?:    number;
 };
 
 export type ProjectDetail = Project & {

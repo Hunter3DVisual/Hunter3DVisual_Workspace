@@ -38,9 +38,14 @@ export async function createProject(input: CreateProjectInput) {
 
   return db.project.create({
     data: {
-      ...input,
-      code: generateProjectCode(input.name),
-      ownerId: user.id,
+      name:        input.name,
+      code:        generateProjectCode(input.name),
+      ownerId:     user.id,
+      clientId:    input.clientId    || undefined,
+      description: input.description || undefined,
+      deadline:    input.deadline    ? new Date(input.deadline) : undefined,
+      budget:      input.budget,
+      currency:    input.currency    || "USD",
     },
     include: { client: true },
   });
@@ -62,7 +67,16 @@ export async function updateProject(id: string, input: UpdateProjectInput) {
 
   return db.project.update({
     where: { id },
-    data: input,
+    data: {
+      ...(input.name        !== undefined && { name:        input.name }),
+      ...(input.clientId    !== undefined && { clientId:    input.clientId    ?? undefined }),
+      ...(input.description !== undefined && { description: input.description ?? null }),
+      ...(input.deadline    !== undefined && { deadline:    input.deadline    ? new Date(input.deadline) : null }),
+      ...(input.budget      !== undefined && { budget:      input.budget }),
+      ...(input.currency    !== undefined && { currency:    input.currency }),
+      ...(input.status      !== undefined && { status:      input.status }),
+      ...(input.progress    !== undefined && { progress:    input.progress }),
+    },
     include: { client: true },
   });
 }

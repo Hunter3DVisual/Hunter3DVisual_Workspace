@@ -66,6 +66,7 @@ export function ProjectFormModal({ open, onOpenChange, project }: Props) {
   const router = useRouter();
   const [clients, setClients] = useState<ClientSelectOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const {
     register,
@@ -92,6 +93,7 @@ export function ProjectFormModal({ open, onOpenChange, project }: Props) {
 
   useEffect(() => {
     if (open) {
+      setSaveError(null);
       getClientsForSelect().then(setClients);
       if (!project) reset({ currency: "USD" });
       else
@@ -111,14 +113,16 @@ export function ProjectFormModal({ open, onOpenChange, project }: Props) {
 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
+    setSaveError(null);
     try {
       const data = {
-        name: values.name,
-        clientId: values.clientId || undefined,
-        description: values.description || undefined,
-        deadline: values.deadline ? new Date(values.deadline) : undefined,
-        budget: values.budget,
-        currency: values.currency || "USD",
+        name:        values.name,
+        clientId:    values.clientId    || undefined,
+        // null explicitly clears the field; undefined means "don't touch"
+        description: values.description !== undefined ? (values.description || null) : null,
+        deadline:    values.deadline    || null,       // ISO string or null
+        budget:      values.budget,
+        currency:    values.currency    || "USD",
       };
 
       if (project) {
@@ -129,7 +133,14 @@ export function ProjectFormModal({ open, onOpenChange, project }: Props) {
 
       router.refresh();
       onOpenChange(false);
-    } catch {
+    } catch (e) {
+      console.error("Project save error:", e);
+      const digest = (e as any)?.digest ? ` [${(e as any).digest}]` : "";
+      setSaveError(
+        e instanceof Error
+          ? e.message + digest
+          : `Failed to save project. Please try again.${digest}`
+      );
     } finally {
       setLoading(false);
     }
@@ -254,6 +265,12 @@ export function ProjectFormModal({ open, onOpenChange, project }: Props) {
               className="[color-scheme:dark]"
             />
           </div>
+
+          {saveError && (
+            <div className="rounded-md bg-red-500/10 border border-red-500/30 px-3 py-2 text-xs text-red-400">
+              ⚠ {saveError}
+            </div>
+          )}
 
           <DialogFooter>
             <Button
